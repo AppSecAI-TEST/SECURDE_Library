@@ -25,8 +25,8 @@
     <![endif]-->
 </head>
 <style>
-#sign-in{
-	margin-top:10%;
+#advanced-search{
+	margin-top:5%;
 	padding:20px;
 	border-radius: 10px;
 	background-color: #e0e0e0;
@@ -62,31 +62,40 @@
 		</div>
 	</nav>
 
-	<div id="sign-in" class="col-md-6 col-md-offset-3">
+	<div id="advanced-search" class="col-md-8 col-md-offset-2">
 		
 		<form>
-					<div class="form-group">
-				<label for="name">Full Name:</label> <input type="text"
-					class="form-control" id="name">
+			<div class="form-group">
+				<label for="types">Type:</label> <br> 
+					<div class="col-md-3 col-md-offset-1">
+					<input type="checkbox"
+					name="type" value="books" id="type-books"> Books
+					</div>
+					<div class="col-md-3 col-md-offset-1">
+					<input type="checkbox"
+					name="type" value="magazine" id="type-magazines"> Magazines
+					</div>
+					<div class="col-md-3 col-md-offset-1">
+					<input type="checkbox"
+					name="type" value="thesis" id="type-thesis"> Thesis
+					</div> <br>
 			</div>
 			<div class="form-group">
-				<label for="email">Email address:</label> <input type="email"
-					class="form-control" id="email">
+				<label for="title">Title:</label> <input type="text"
+					class="form-control" id="title">
+			</div>
+			
+			<div class="form-group">
+				<label for="author">Author:</label> <input type="text"
+					class="form-control" id="author">
 			</div>
 			<div class="form-group">
-				<label for="pwd">Password:</label> <input type="password"
-					class="form-control" id="pwd">
+				<label for="publisher">Publisher:</label> <input type="text"
+					class="form-control" id="publisher">
 			</div>
-			<div class="form-group">
-				<label for="cpwd">Confirm Password:</label> <input type="password"
-					class="form-control" id="cpwd">
-			</div>
-			<button class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
-			<button type="submit" class="btn btn-success col-md-4 btn-space">Submit</button>
+			<button type="submit" class="btn btn-success col-md-2 col-md-offset-10 btn-space">Search</button>
 		</form>
 	</div>
-
-
 
 
 	<!-- Bootstrap core JavaScript

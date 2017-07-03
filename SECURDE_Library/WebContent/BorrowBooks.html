@@ -25,9 +25,9 @@
     <![endif]-->
 </head>
 <style>
-#sign-in{
-	margin-top:10%;
-	padding:20px;
+#borrow-books{
+	margin-top:2%;
+	padding:10px;
 	border-radius: 10px;
 	background-color: #e0e0e0;
 }
@@ -62,32 +62,26 @@
 		</div>
 	</nav>
 
-	<div id="sign-in" class="col-md-6 col-md-offset-3">
+	<div id="borrow-books" class="col-md-8 col-md-offset-2">
 		
-		<form>
-					<div class="form-group">
-				<label for="name">Full Name:</label> <input type="text"
-					class="form-control" id="name">
+		<form class="content row">
+			<div class="col-md-9">
+			<input type="text" placeholder="Keyword"
+					class="form-control" id="keyword">
 			</div>
-			<div class="form-group">
-				<label for="email">Email address:</label> <input type="email"
-					class="form-control" id="email">
-			</div>
-			<div class="form-group">
-				<label for="pwd">Password:</label> <input type="password"
-					class="form-control" id="pwd">
-			</div>
-			<div class="form-group">
-				<label for="cpwd">Confirm Password:</label> <input type="password"
-					class="form-control" id="cpwd">
-			</div>
-			<button class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
-			<button type="submit" class="btn btn-success col-md-4 btn-space">Submit</button>
+				<button type="submit" class="btn btn-success col-md-2 ">Search</button>		
 		</form>
 	</div>
 
-
-
+	<div class="card col-md-10 col-md-offset-1">
+  		<div class="card-block">
+    		<h3 class="card-title">Book title</h3>
+    		<h5 class="card-subtitle mb-2 text-muted">Authors Name, Publisher, Year</h5>
+    			<p class="card-text">Tags.</p>
+    			<p class="card-text">STATUS.</p>
+    		<a href="#" class="card-link">More</a>
+  		</div>
+	</div>
 
 	<!-- Bootstrap core JavaScript
     ================================================== -->
