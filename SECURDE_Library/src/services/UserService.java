@@ -27,9 +27,10 @@ public class UserService {
 				+ User.COLUMN_LASTLOGIN + ", "
 				+ User.COLUMN_ACCESSLEVEL + ", "
 				+ User.COLUMN_PASS + ") "
-				+ " VALUES (?,?,?,?);";
+				+ " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
 				
-		Connection conn = DBPool.getInstance().getConnection();
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
 		
 		PreparedStatement pstmt = null;
 		
@@ -47,7 +48,8 @@ public class UserService {
 			pstmt.setString(9, u.getSecretAnswer());
 		    java.sql.Date creation = new java.sql.Date(new Date().getTime());
 			pstmt.setDate(10,creation);
-			pstmt.setDate(11, creation);
+			java.sql.Date lastlogin = new java.sql.Date(new Date().getTime());
+			pstmt.setDate(11, lastlogin);
 			pstmt.setInt(12, u.getAccessLevel());
 			pstmt.setString(13, u.getPassword());
 			
@@ -73,7 +75,8 @@ public class UserService {
 		
 		String sql = "Select * from " + User.TABLE_NAME;
 		Connection conn = null;
-		conn = DBPool.getInstance().getConnection();
+		DBPool.getInstance();
+		conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs= null;
 		
@@ -128,7 +131,8 @@ public class UserService {
 		}
 		
 		Connection conn = null;
-		conn = DBPool.getInstance().getConnection();
+		DBPool.getInstance();
+		conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs= null;
 		
@@ -175,7 +179,8 @@ public class UserService {
 		String sql = "DELETE FROM " + User.TABLE_NAME + " WHERE "
 				 + User.COLUMN_IDNUM + " = ?;";
 		
-		Connection conn = DBPool.getInstance().getConnection();
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		try {
 			pstmt = conn.prepareStatement(sql);
@@ -200,7 +205,8 @@ public class UserService {
 		String sql = "SELECT " + User.COLUMN_USERNAME + " FROM "+User.TABLE_NAME+" WHERE "
 				 + User.COLUMN_IDNUM + " = ?;";
 		String name = null;
-		Connection conn = DBPool.getInstance().getConnection();
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		try {
 			pstmt = conn.prepareStatement(sql);
@@ -228,6 +234,41 @@ public class UserService {
 
 	}
 	
+	public void updateLogIn(int id) {
+		String sql = "UPDATE " + User.TABLE_NAME + 
+				" SET " + User.COLUMN_LASTLOGIN + 
+				" =? " + " WHERE " + User.COLUMN_IDNUM + 
+				" =" + id + ";"; 
+		
+		Connection conn = DBPool.getConnection();
+		
+		PreparedStatement pstmt = null;
+		
+		try {
+			pstmt = conn.prepareStatement(sql);
+			
+			java.sql.Date lastlogin = new java.sql.Date(new Date().getTime());
+			pstmt.setDate(1, lastlogin);
+			
+			pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	
+		
+		
+	}
+	
 	public int logInUser(String email, String password){
 		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM "+User.TABLE_NAME+" WHERE "
 				 + User.COLUMN_EMAIL + " = ? AND "+
@@ -235,7 +276,8 @@ public class UserService {
 		int id=-1;
 		
 
-		Connection conn = DBPool.getInstance().getConnection();
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		try {
 			pstmt = conn.prepareStatement(sql);
@@ -261,7 +303,7 @@ public class UserService {
 		}
 		
 		if(id!=-1) {
-			//updateLogIn(id);
+			updateLogIn(id);
 		}
 		
 		return id;
