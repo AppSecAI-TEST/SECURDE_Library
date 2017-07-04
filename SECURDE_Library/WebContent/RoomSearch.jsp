@@ -9,7 +9,7 @@
 <meta name="author" content="">
 <link rel="icon" href="../../favicon.ico">
 
-<title>Jumbotron Template for Bootstrap</title>
+<title>DLSU-LIB : Room Reservations</title>
 <!-- Bootstrap core JavaScript
     ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
@@ -157,7 +157,6 @@
 				</div>
 			</div>
 		</div>
-	</div>
 	</div>
 
 </body>
