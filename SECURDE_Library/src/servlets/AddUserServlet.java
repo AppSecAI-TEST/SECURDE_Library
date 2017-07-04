@@ -42,11 +42,17 @@ public class AddUserServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		User u = new User();
 		
+		u.setIdUser(Integer.parseInt(request.getParameter("userid")));
 		u.setEmail(request.getParameter("email"));
 		u.setFirstName(request.getParameter("firstname"));
 		u.setMiddleName(request.getParameter("middlename"));
 		u.setLastName(request.getParameter("lastname"));
-		u.setAccessLevel(Integer.parseInt(request.getParameter("access_level")));
+		int access = 0;
+		String accessString = request.getParameter("access_level");
+		if("Faculty".equals(accessString)){
+			access = 1;
+		}
+		u.setAccessLevel(access);
 		String birthdate = request.getParameter("birthdate");
 		String[] dates = birthdate.split("/");
 		int month = Integer.parseInt(dates[0]);
