@@ -57,20 +57,7 @@
 	padding: 10px;
 }
 </style>
-
-
-<script>
-	$(document).ready(function() {
-		$('#datePicker').datepicker({
-			format : 'mm/dd/yyyy'
-		}).on('changeDate', function(e) {
-			// Revalidate the date field
-
-		});
-
-	});
-</script>
-
+<script type="text/javascript" src="js/datepicker.js"></script>
 
 <body>
 
