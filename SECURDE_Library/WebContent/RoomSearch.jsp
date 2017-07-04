@@ -12,33 +12,8 @@
 <link rel="icon" href="../../favicon.ico">
 
 <title>DLSU-LIB : Room Reservations</title>
-<!-- Bootstrap core JavaScript
-    ================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-<script src="bootstrap/js/bootstrap.min.js"></script>
-<script
-	src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.min.js"></script>
-
-<!-- Bootstrap core CSS -->
-<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-<link href="css/style.css" rel="stylesheet">
-
-<!-- Custom styles for this template -->
-<link href="jumbotron.css" rel="stylesheet">
-
-<!-- SELECT -->
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-
-<!-- Latest compiled and minified JavaScript -->
-<script
-	src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
-
-<!-- SLECT -->
+	<jsp:include page="components/headers.jsp" />
 
 
 </head>
@@ -63,7 +38,7 @@
 
 <body>
 
-	<jsp:include page="components/navbar.html" />
+	<jsp:include page="components/navbar.jsp" />
 
 	<div class="col-md-10 col-md-offset-1">
 		<div id="searchRooms" class="col-md-3">
