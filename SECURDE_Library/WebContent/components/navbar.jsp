@@ -3,8 +3,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <style>
-#nav-buttons{
-	margin-top:7px
+#nav-buttons {
+	margin-top: 7px
 }
 </style>
 
@@ -21,10 +21,24 @@
 	</div>
 	<div id="navbar" class="navbar-collapse collapse">
 		<div class="navbar-right" id="nav-buttons">
+
+			<%
+				if ((int) request.getAttribute("loggedin") != -1) {
+			%>
 			<button id="nav-sign-up" class="btn btn-default"
 				onclick="location.href='SignUp.jsp'">Sign up</button>
 			<button id="nav-sign-in" class="btn btn-success"
 				onclick="location.href='LogIn.jsp'">Log in</button>
+			<%
+				} else {
+			%>
+			<button id="nav-myacc" class="btn btn-default"
+				onclick="location.href='SignUp.jsp'">My Account</button>
+			<button id="nav-logout" class="btn btn-default"
+				onclick="location.href='LogIn.jsp'">Log out</button>
+			<%
+				}
+			%>
 		</div>
 	</div>
 	<!--/.navbar-collapse -->

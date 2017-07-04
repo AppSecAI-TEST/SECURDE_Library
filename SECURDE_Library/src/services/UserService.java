@@ -269,9 +269,9 @@ public class UserService {
 		
 	}
 	
-	public int logInUser(String email, String password){
+	public int logInUser(String username, String password){
 		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM "+User.TABLE_NAME+" WHERE "
-				 + User.COLUMN_EMAIL + " = ? AND "+
+				 + User.COLUMN_USERNAME + " = ? AND "+
 				 	User.COLUMN_PASS + " =?";
 		int id=-1;
 		
@@ -281,7 +281,7 @@ public class UserService {
 		PreparedStatement pstmt = null;
 		try {
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1,  email);
+			pstmt.setString(1,  username);
 			pstmt.setString(2,  password);
 			ResultSet rs = pstmt.executeQuery();
 			

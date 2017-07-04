@@ -18,6 +18,7 @@ public class User implements Serializable{
 	public final static String COLUMN_BIRTHDATE = "birthdate";
 	public final static String COLUMN_SECRETQUESTION = "secret_question";
 	public final static String COLUMN_SECRETANSWER = "secret_answer";
+	public final static String COLUMN_STATUS = "status";
 	
 	private String firstName, middleName, lastName;
 	private int idUser;
@@ -29,7 +30,16 @@ public class User implements Serializable{
 	private GregorianCalendar birthdate;
 	private int accessLevel;
 	private String secretQuestion, secretAnswer;
+	private int status;
 	
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
 	public User(){
 		
 	}
