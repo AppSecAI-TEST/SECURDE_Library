@@ -11,9 +11,8 @@ import db.DBPool;
 import models.Books;
 
 public class BooksService {
-	
-	public int addBook(Books b){
-		
+
+	public static int addBook(Books b){
 		int id=-1;
 		String sql ="INSERT INTO " + Books.TABLE_NAME + " (" 
 				+ Books.COLUMN_TITLE + ", "
@@ -83,7 +82,7 @@ public class BooksService {
 		
 	}
 	
-	public void deleteBook(int idBook){
+	public static void deleteBook(int idBook){
 		String sql = "DELETE FROM " + Books.TABLE_NAME + " WHERE "
 				 + Books.COLUMN_IDBOOK + " = ?;";
 		
@@ -109,7 +108,7 @@ public class BooksService {
 		
 	}
 	
-	public void updateBook(Books b){
+	public static void updateBook(Books b){
 		// UPDATE person SET name=?, gender=?, age=? where idNum=?
 		
 		String sql = "UPDATE " + Books.TABLE_NAME + " SET "
@@ -153,7 +152,7 @@ public class BooksService {
 		
 	}
 	
-	public ArrayList<Books> getAllBooks(){
+	public static ArrayList<Books> getAllBooks(){
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME;
@@ -186,7 +185,7 @@ public class BooksService {
 		return books;
 	}
 
-	public Books getBookById(int id){
+	public static Books getBookById(int id){
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE " + Books.COLUMN_IDBOOK + "=?;";
 
 		Books b = new Books();
@@ -218,14 +217,14 @@ public class BooksService {
 		
 	}
 
-	public ArrayList<Books> getBooksBySearch(String keyword){
+	public static ArrayList<Books> getBooksBySearch(String keyword){
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE "
-				+ Books.COLUMN_TITLE + " =? OR "
-				+ Books.COLUMN_AUTHOR + " =? OR "
-				+ Books.COLUMN_PUBLISHER + " =? OR "
-				+ Books.COLUMN_YEAR	+ " =?;";
+				+ Books.COLUMN_TITLE + " LIKE ? OR "
+				+ Books.COLUMN_AUTHOR + " LIKE ? OR "
+				+ Books.COLUMN_PUBLISHER + " LIKE ? OR "
+				+ Books.COLUMN_YEAR	+ " LIKE ?;";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
@@ -237,7 +236,7 @@ public class BooksService {
 			pstmt.setString(2, "%"+keyword+"%");
 			pstmt.setString(3, "%"+keyword+"%");
 			pstmt.setString(4, "%"+keyword+"%");
-			
+			System.out.println(pstmt.toString());
 			rs = pstmt.executeQuery();
 			while(rs.next()){
 				Books b = new Books();
@@ -259,15 +258,15 @@ public class BooksService {
 		return books;
 	}	
 
-	public ArrayList<Books> getBooksByAdvancedSearch(String title, String author, String publisher, int year, int type){
+	public static ArrayList<Books> getBooksByAdvancedSearch(String title, String author, String publisher, int year, int type){
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE "
-				+ Books.COLUMN_TITLE + " =? AND "
-				+ Books.COLUMN_AUTHOR + " =? AND "
-				+ Books.COLUMN_PUBLISHER + " =? AND "
-				+ Books.COLUMN_TYPE + " =? AND "
-				+ Books.COLUMN_YEAR	+ " =?;";
+				+ Books.COLUMN_TITLE + " LIKE ? AND "
+				+ Books.COLUMN_AUTHOR + " LIKE ? AND "
+				+ Books.COLUMN_PUBLISHER + " LIKE ? AND "
+				+ Books.COLUMN_TYPE + " LIKE ? AND "
+				+ Books.COLUMN_YEAR	+ " LIKE ?;";
 		
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();

@@ -35,12 +35,12 @@
         <div class="col-md-6">
           <h2>Borrow Books</h2>
           <p>The main library, called The Learning Commons, is home to 434,720 volumes of book accessions, 31,309 volumes of thesis & dissertations, and more than 29,000 volumes of other printed materials. </p>
-          <p><a class="btn btn-default" href="BorrowBooks.html" role="button">Borrow &raquo;</a></p>
+          <p><a class="btn btn-default" href="search_book" role="button">Borrow &raquo;</a></p>
        </div>
         <div class="col-md-6">
           <h2>Reserve Rooms</h2>
           <p>Currently, The Learning Commons has 40 discussion rooms that are available and located on the 7th to the 12th floors. This serve as a venue for researchers to discuss and work together.</p>
-          <p><a class="btn btn-default" href="#" role="button">Reserve &raquo;</a></p>
+          <p><a class="btn btn-default" href="search_room" role="button">Reserve &raquo;</a></p>
         </div>
       </div>
 

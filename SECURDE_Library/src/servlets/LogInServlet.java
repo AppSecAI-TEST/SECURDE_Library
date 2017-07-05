@@ -43,9 +43,7 @@ public class LogInServlet extends HttpServlet {
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
 		
-		UserService service = new UserService();
-		
-		int id=service.logInUser(username, password);
+		int id=UserService.logInUser(username, password);
 		
 		if(id != -1){
 			request.setAttribute("loggedin", id);

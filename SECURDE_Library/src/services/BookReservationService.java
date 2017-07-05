@@ -10,35 +10,46 @@ import java.util.GregorianCalendar;
 
 import db.DBPool;
 import models.BookReservation;
-import models.User;
 
 public class BookReservationService {
-	public void addBookReservation(BookReservation br){
+	public static long addBookReservation(BookReservation br){
 		String sql ="INSERT INTO " + BookReservation.TABLE_NAME + " (" 
 				+ BookReservation.COLUMN_IDBOOKRESERVATION + ", "
 				+ BookReservation.COLUMN_IDBOOK + ", "
 				+ BookReservation.COLUMN_IDUSER + ", "
 				+ BookReservation.COLUMN_DEADLINE + ", "
-				+ BookReservation.COLUMN_RETURNTIME + ", "
 				+ BookReservation.COLUMN_CREATETIME + ") "
-				+ " VALUES (?,?,?,?,?,?);";
+				+ " VALUES (?,?,?,?,?);";
 				
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		
 		PreparedStatement pstmt = null;
-		
+		java.sql.Date deadline = new java.sql.Date(0);
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, br.getIdBookReservation());
 			pstmt.setInt(2, br.getIdBook());
 			pstmt.setInt(3, br.getIdUser());
-			java.sql.Date deadline = new java.sql.Date(br.getDeadline().getTimeInMillis());
+			
+			long adjustment=0;
+			int access = UserService.getUserByID(br.getIdUser()).getAccessLevel();
+			switch(access){
+			case 0:
+				adjustment = Long.parseLong("604800000");
+				break;
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+				adjustment = Long.parseLong("2629746000");
+				break;
+			}
+			
+			deadline = new java.sql.Date(new Date().getTime()+adjustment);
 			pstmt.setDate(4, deadline);
-			java.sql.Date returntime = new java.sql.Date(br.getReturnTime().getTimeInMillis());
-			pstmt.setDate(5, returntime);
 		    java.sql.Date creation = new java.sql.Date(new Date().getTime());
-			pstmt.setDate(6,creation);
+			pstmt.setDate(5,creation);
 			
 			pstmt.executeUpdate();
 			
@@ -55,9 +66,11 @@ public class BookReservationService {
 			}
 		}
 		
+		return deadline.getTime();
+		
 	}
 	
-	public ArrayList<BookReservation> getBookReservationByUser(int id){
+	public static ArrayList<BookReservation> getBookReservationByUser(int id){
 		ArrayList<BookReservation> breservation = new ArrayList<BookReservation>();
 		
 		String sql = "Select * from " + BookReservation.TABLE_NAME + " WHERE "
@@ -96,7 +109,7 @@ public class BookReservationService {
 		return breservation;
 	}	
 
-	public ArrayList<BookReservation> getAllBookReservation(int id){
+	public static ArrayList<BookReservation> getAllBookReservation(int id){
 		ArrayList<BookReservation> breservation = new ArrayList<BookReservation>();
 		
 		String sql = "Select * from " + BookReservation.TABLE_NAME;
@@ -134,7 +147,7 @@ public class BookReservationService {
 		return breservation;
 	}	
 
-	public ArrayList<BookReservation> getBookReservationByDeadline(Date deadline){
+	public static ArrayList<BookReservation> getBookReservationByDeadline(Date deadline){
 		ArrayList<BookReservation> breservation = new ArrayList<BookReservation>();
 		
 		String sql = "Select * from " + BookReservation.TABLE_NAME + " WHERE "
@@ -174,7 +187,7 @@ public class BookReservationService {
 		return breservation;
 	}
 	
-	public void deleteBookReservation(int id){
+	public static void deleteBookReservation(int id){
 		String sql = "DELETE FROM " + BookReservation.TABLE_NAME + " WHERE "
 				 + BookReservation.COLUMN_IDBOOKRESERVATION + " = ?;";
 		
