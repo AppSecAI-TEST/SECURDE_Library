@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,6 +34,16 @@
 }
 
 </style>
+<script>
+	$('document').ready(function(){
+			
+			$('#submit').click(function(){
+				$('form#editbook').submit();
+			});
+			
+		});
+</script>
+		
 <body>
 
 	<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -62,28 +73,58 @@
 		</div>
 	</nav>
 
-	<div id="editbook" class="col-md-6 col-md-offset-3">
+	<div action="EditBookServlet" method="post" id="editbook" class="col-md-6 col-md-offset-3">
 		
 		<form>
-					<div class="form-group">
-				<label for="name">Book Title</label> <input type="text"
-					class="form-control" id="booktitle">
+		
+		<div class="form-group">
+				<label for="type">Type:</label> <br>
+				<c:if test="${show_book.type eq 0 }">
+					<select class="selectpicker" id="booktype" name="updated_type">
+						<option selected="selected">Book</option>
+						<option>Magazine</option>
+						<option>Thesis</option>
+					</select>
+				</c:if>
+				
+				<c:if test="${show_book.type eq 1 }">
+					<select class="selectpicker" id="booktype" name="updated_type">
+						<option >Book</option>
+						<option selected="selected">Magazine</option>
+						<option>Thesis</option>
+					</select>
+				</c:if>
+				
+				<c:if test="${show_book.type eq 2 }">
+					<select class="selectpicker" id="booktype" name="updated_type">
+						<option >Book</option>
+						<option>Magazine</option>
+						<option selected="selected">Thesis</option>
+					</select>
+				</c:if>
+			</div>
+				<div class="form-group">
+				<label for="name">Book Title</label> <input type="text" value="${show_book.title}" class="form-control" id="booktitle" name="updated_title" required/>
 			</div>
 			<div class="form-group">
 				<label for="email">Author:</label> <input type="text"
-					class="form-control" id="auth">
+					class="form-control" value="${show_book.author}" name="updated_author" id="auth">
 			</div>
 			<div class="form-group">
 				<label for="pwd">Publisher:</label> <input type="text"
-					class="form-control" id="pub">
+					class="form-control" value="${show_book.publisher}" name="updated_publisher" id="pub">
 			</div>
 			<div class="form-group">
 				<label for="cpwd">Published Year:</label> <input type="text"
-					class="form-control" id="pubyear">
+					class="form-control" value="${show_book.year}" name="updated_year" id="pubyear">
 			</div>
 			<div class="form-group">
-				<label for="cpwd">Brief Description:</label> <input type="text"
-					class="form-control" id="desc">
+				<label for="cpwd">Tags:</label> 
+				String tagnames;
+							<c:forEach var="t" items="${show_book_tags}">
+								   tagnames+= "${t.tag}" + ",";
+							</c:forEach>
+					<input type="text" class="form-control" value=tagnames name="updated_tags" id="desc">
 			</div>
 			<button class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
 			<button type="submit" class="btn btn-success col-md-4 btn-space">Save</button>

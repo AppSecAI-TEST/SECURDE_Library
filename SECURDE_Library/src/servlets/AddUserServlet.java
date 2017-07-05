@@ -51,6 +51,12 @@ public class AddUserServlet extends HttpServlet {
 		String accessString = request.getParameter("access_level");
 		if("Faculty".equals(accessString)){
 			access = 1;
+		}else if ("Manager".equals(accessString)) {
+			access = 2;
+		}else if ("Staff".equals(accessString)) {
+			access = 3;
+		}else if ("Admin".equals(accessString)) {
+			access = 4;
 		}
 		u.setAccessLevel(access);
 		String birthdate = request.getParameter("birthdate");
