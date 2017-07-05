@@ -17,7 +17,7 @@
 
 <!-- Custom styles for this template -->
 <link href="jumbotron.css" rel="stylesheet">
-
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -30,10 +30,6 @@
 	padding:10px;
 	border-radius: 10px;
 	background-color: #e0e0e0;
-}
-
-#results-list{
-	border-color: #333;
 }
 
 </style>
@@ -66,23 +62,6 @@
 		</div>
 	</nav>
 
-	<div id="borrow-books" class="col-md-8 col-md-offset-2">
-		
-		<form class="content row">
-			<div class="col-md-9">
-			<input type="text" placeholder="Keyword"
-					class="form-control" id="keyword">
-			</div>
-				<button type="submit" class="btn btn-success col-md-2 ">Search</button>		
-		</form>
-		
-	</div>
-
-
-	<div id="advanced-search" class="col-md-2 col-md-offset-5">
-		<a href="AdvancedSearch.html" class="link">Advanced Search</a>
-	</div>
-	
 	<div class="card col-md-9 col-md-offset-2">
   		<div class="card-block card-space" >
     		<div class="container">
@@ -90,19 +69,31 @@
 					<div class="col-md-9">
               			<div class="thumbnail">
                 			<div class="caption">
-                			<div class="btn-group cart pull-right">
-								<button type="button" class="btn btn-success">
-									Reserve
-								</button>
-							</div>
-                  					<h4><a href="#">Book Title</a></h4>
-                  					<h5><a href="#">Author</a></h5>
-                  					<h5><a href="#">Publisher</a></h5>
-                  					<h6><a href="#">Brief Description</a></h6>
+                					<div class="btn-group cart pull-right margin card-space">
+										<button type="button" class="btn btn-success">
+										Reserve
+										</button>
+									</div>
+                  					<h4>Book Title</h4>
+                  					<h5>Author</h5>
+                  					<h5>Publisher</h5>
+                  					<h6>Brief Description</h6>
                   			</div>
                 			<div class="caption">
                   				<p>Status: Available </p>	
                 			</div>
+                			<div class="rating caption">
+								<div class="stars">							
+									<span class="fa fa-star checked"></span>
+									<span class="fa fa-star checked"></span>
+									<span class="fa fa-star checked"></span>
+									<span class="fa fa-star"></span>
+									<span class="fa fa-star"></span>
+								</div>
+									<span class="review-no">41 reviews</span>
+								
+							</div>
+							</div>
               			</div>
             		</div>
   				</div>
