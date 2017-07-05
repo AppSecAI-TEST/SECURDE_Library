@@ -19,11 +19,9 @@ public class BooksService {
 				+ Books.COLUMN_AUTHOR + ", "
 				+ Books.COLUMN_PUBLISHER + ", "
 				+ Books.COLUMN_YEAR + ", "
-				+ Books.COLUMN_STATUS + ", "
 				+ Books.COLUMN_LOCATION + ", "
-				+ Books.COLUMN_TYPE + ", "
-				+ Books.COLUMN_CREATETIME + ") "
-				+ " VALUES (?,?,?,?,?,?,?,?,?);";
+				+ Books.COLUMN_TYPE + " ) "
+				+ " VALUES (?,?,?,?,?,?);";
 				
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -32,16 +30,12 @@ public class BooksService {
 		
 		try {
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, b.getIdBooks());
-			pstmt.setString(2, b.getTitle());
-			pstmt.setString(3, b.getAuthor());
-			pstmt.setString(4, b.getPublisher());
-			pstmt.setInt(5, b.getYear());
-			pstmt.setInt(6, b.getStatus());
-			pstmt.setDouble(7, b.getLocation());
-			pstmt.setInt(8, b.getType());
-		    java.sql.Date creation = new java.sql.Date(new Date().getTime());
-			pstmt.setDate(9,creation);
+			pstmt.setString(1, b.getTitle());
+			pstmt.setString(2, b.getAuthor());
+			pstmt.setString(3, b.getPublisher());
+			pstmt.setInt(4, b.getYear());
+			pstmt.setDouble(5, b.getLocation());
+			pstmt.setInt(6, b.getType());
 			
 			pstmt.executeUpdate();
 			pstmt.close();

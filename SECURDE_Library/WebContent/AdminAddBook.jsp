@@ -11,22 +11,11 @@
 
 <title>Jumbotron Template for Bootstrap</title>
 
-<!-- Bootstrap core CSS -->
-<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-<link href="css/style.css" rel="stylesheet">
-
-<!-- Custom styles for this template -->
-<link href="jumbotron.css" rel="stylesheet">
-
-<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-<!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+<jsp:include page="components/headers.jsp"/>
 </head>
 <style>
 #editbook{
-	margin-top:10%;
+	margin-top:10px;
 	padding:20px;
 	border-radius: 10px;
 	background-color: #e0e0e0;
@@ -44,44 +33,21 @@
 </script>
 <body>
 
-	<nav class="navbar navbar-inverse navbar-fixed-top">
-		<div class="container">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle collapsed"
-					data-toggle="collapse" data-target="#navbar" aria-expanded="false"
-					aria-controls="navbar">
-					<span class="sr-only">Toggle navigation</span> <span
-						class="icon-bar"></span> <span class="icon-bar"></span> <span
-						class="icon-bar"></span>
-				</button>
-				<a class="navbar-brand" href="index.html">DLSU SHS Library</a>
-			</div>
-			<div id="navbar" class="navbar-collapse collapse">
-				<form class="navbar-form navbar-right">
-					<div class="form-group">
-						<input type="text" placeholder="Email" class="form-control">
-					</div>
-					<div class="form-group">
-						<input type="password" placeholder="Password" class="form-control">
-					</div>
-					<button type="submit" class="btn btn-success">Sign in</button>
-				</form>
-			</div>
-			<!--/.navbar-collapse -->
-		</div>
-	</nav>
+<jsp:include page="components/navbar.jsp"/>
 
 	<div id="editbook" class="col-md-6 col-md-offset-3">
 		
-		<form action="AddBookServlet" method="post" id="add-book-form" >
+		<form action="addbook" method="post" id="add-book-form" >
 		
 			<div class="form-group">
-				<label for="type">Type:</label> <br>
+				<label for="type">Type:</label>
+				<div>
 					<select class="selectpicker" id="booktype" name="type">
 						<option>Book</option>
 						<option>Magazine</option>
 						<option>Thesis</option>
 					</select>
+				</div>
 			</div>
 			<div class="form-group">
 				<label for="title">Book Title</label> <input type="text"
@@ -114,18 +80,5 @@
 	</div>
 
 
-
-
-	<!-- Bootstrap core JavaScript
-    ================================================== -->
-	<!-- Placed at the end of the document so the pages load faster -->
-	<script
-		src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<script>
-		window.jQuery
-				|| document
-						.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')
-	</script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>
