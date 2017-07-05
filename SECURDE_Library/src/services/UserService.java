@@ -108,6 +108,54 @@ public class UserService {
 		return users;
 	}
 
+	public static ArrayList<User> getAllUsersByStatus(int status) {
+		ArrayList<User> users = new ArrayList<User>();
+
+		String sql = "Select * from " + User.TABLE_NAME + " WHERE " + User.COLUMN_STATUS + " = ?;";
+		Connection conn = null;
+		DBPool.getInstance();
+		conn = DBPool.getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				User u = new User();
+				u.setIdUser(rs.getInt(User.COLUMN_IDNUM));
+				u.setEmail(rs.getString(User.COLUMN_EMAIL));
+				u.setFirstName(rs.getString(User.COLUMN_FIRSTNAME));
+				u.setMiddleName(rs.getString(User.COLUMN_MIDDLENAME));
+				u.setLastName(rs.getString(User.COLUMN_LASTNAME));
+				u.setAccessLevel(rs.getInt(User.COLUMN_ACCESSLEVEL));
+
+				GregorianCalendar birthdate = new GregorianCalendar();
+				birthdate.setTimeInMillis(rs.getDate(User.COLUMN_BIRTHDATE).getTime());
+				u.setBirthdate(birthdate);
+
+				GregorianCalendar createtime = new GregorianCalendar();
+				createtime.setTimeInMillis(rs.getDate(User.COLUMN_CREATETIME).getTime());
+				u.setCreateTime(createtime);
+
+				GregorianCalendar lastlogin = new GregorianCalendar();
+				lastlogin.setTimeInMillis(rs.getDate(User.COLUMN_LASTLOGIN).getTime());
+				u.setLastLogin(lastlogin);
+
+				u.setSecretQuestion(rs.getString(User.COLUMN_SECRETQUESTION));
+				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
+				u.setUserName(rs.getString(User.COLUMN_USERNAME));
+				u.setPassword(rs.getString(User.COLUMN_PASS));
+
+				users.add(u);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return users;
+	}
+
 	public static ArrayList<User> getUsersByID(ArrayList<Integer> idNum) {
 		ArrayList<User> users = new ArrayList<User>();
 
@@ -272,6 +320,71 @@ public class UserService {
 		}
 
 		return name;
+
+	}
+
+	
+	public static void updateLockedStatus(int id) {
+		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_STATUS + " =? " + " WHERE "
+				+ User.COLUMN_IDNUM + " =" + id + ";";
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+
+		PreparedStatement pstmt = null;
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			
+		
+			
+			pstmt.setInt(1, 1);
+
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
+	
+	public static void updateUnlockedStatus(int id) {
+		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_STATUS + " =? " + " WHERE "
+				+ User.COLUMN_IDNUM + " =" + id + ";";
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+
+		PreparedStatement pstmt = null;
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			
+		
+			
+			pstmt.setInt(1, 0);
+
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 
 	}
 
