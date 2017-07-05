@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import db.DBPool;
-import models.Books;
 import models.Rooms;
 
 public class RoomsServices {
