@@ -12,9 +12,10 @@ import models.Books;
 
 public class BooksService {
 	
-	public void addBook(Books b){
+	public int addBook(Books b){
+		
+		int id=-1;
 		String sql ="INSERT INTO " + Books.TABLE_NAME + " (" 
-				+ Books.COLUMN_IDBOOK + ", "
 				+ Books.COLUMN_TITLE + ", "
 				+ Books.COLUMN_AUTHOR + ", "
 				+ Books.COLUMN_PUBLISHER + ", "
@@ -44,6 +45,26 @@ public class BooksService {
 			pstmt.setDate(9,creation);
 			
 			pstmt.executeUpdate();
+			pstmt.close();
+			
+			String sel ="SELECT "+Books.COLUMN_IDBOOK+" FROM "+Books.TABLE_NAME+" WHERE "
+					+ Books.COLUMN_TITLE + " =? AND "
+					+ Books.COLUMN_AUTHOR + " =? AND "
+					+ Books.COLUMN_YEAR + " =? AND "
+					+ Books.COLUMN_LOCATION	+ " =?";
+			
+			pstmt = conn.prepareStatement(sel);
+			pstmt.setString(1, b.getTitle());
+			pstmt.setString(2, b.getAuthor());
+			pstmt.setInt(3, b.getYear());
+			pstmt.setDouble(4, b.getLocation());
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()){
+				id = rs.getInt(Books.COLUMN_IDBOOK);
+				
+			}
+		
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -57,6 +78,8 @@ public class BooksService {
 				e.printStackTrace();
 			}
 		}
+		
+		return id;
 		
 	}
 	

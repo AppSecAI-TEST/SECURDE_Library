@@ -33,6 +33,15 @@
 }
 
 </style>
+
+<script>
+	$(document).ready(function() {
+		$('#submit').click(function() {
+			$('#add-book-form').submit();
+		});
+
+	});
+</script>
 <body>
 
 	<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -64,26 +73,40 @@
 
 	<div id="editbook" class="col-md-6 col-md-offset-3">
 		
-		<form>
+		<form action="AddBookServlet" method="post" id="add-book-form" >
+		
 			<div class="form-group">
-				<label for="name">Book Title</label> <input type="text"
-					class="form-control" id="booktitle">
+				<label for="type">Type:</label> <br>
+					<select class="selectpicker" id="booktype" name="type">
+						<option>Book</option>
+						<option>Magazine</option>
+						<option>Thesis</option>
+					</select>
 			</div>
 			<div class="form-group">
-				<label for="email">Author:</label> <input type="text"
-					class="form-control" id="auth">
+				<label for="title">Book Title</label> <input type="text"
+					class="form-control" name="book_title" id="booktitle">
 			</div>
 			<div class="form-group">
-				<label for="pwd">Publisher:</label> <input type="text"
-					class="form-control" id="pub">
+				<label for="author">Author:</label> <input type="text"
+					class="form-control" name="author" id="auth">
 			</div>
 			<div class="form-group">
-				<label for="cpwd">Published Year:</label> <input type="text"
-					class="form-control" id="pubyear">
+				<label for="publisher">Publisher:</label> <input type="text"
+					class="form-control" name="publisher" id="pub">
 			</div>
 			<div class="form-group">
-				<label for="cpwd">Brief Description:</label> <input type="text"
-					class="form-control" id="desc">
+				<label for="year">Published Year:</label> <input type="number"
+					class="form-control" name="year" id="pubyear">
+			</div>
+			<div class="form-group">
+				<label for="location">Location:</label> <input type="number"
+					class="form-control" placeholder="Enter in a Dewey decimal format. (e.g. 123.4)" name="location" id="loc">
+			</div>
+			
+			<div class="form-group">
+				<label for="tags">Tags:</label> <input type="text"
+					class="form-control" placeholder="Separate tags with comma (,)" name="tags" id="tag">
 			</div>
 			<button class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
 			<button type="submit" class="btn btn-success col-md-4 btn-space">Add</button>
