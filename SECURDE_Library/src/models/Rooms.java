@@ -8,13 +8,11 @@ public class Rooms implements Serializable{
 	public final static String	COLUMN_IDROOMS       = "idRooms"       	;
 	public final static String	COLUMN_NAME    		= "name"    	 	;
 	public final static String 	COLUMN_FLOOR       	= "floor"       	;
-	public final static String 	COLUMN_STATUS    	= "status"    		;
 	public final static String 	COLUMN_CREATETIME  	= "create_time"  	;
 	
 	private int idRooms;
 	private String name;
 	private String floor;
-	private int status;
 	private GregorianCalendar createTime;
 	
 	public Rooms() {
@@ -37,12 +35,6 @@ public class Rooms implements Serializable{
 	}
 	public void setFloor(String floor) {
 		this.floor = floor;
-	}
-	public int getStatus() {
-		return status;
-	}
-	public void setStatus(int status) {
-		this.status = status;
 	}
 	public GregorianCalendar getCreateTime() {
 		return createTime;

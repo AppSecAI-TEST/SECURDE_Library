@@ -8,8 +8,9 @@ public class RoomReservation {
 	public final static String	COLUMN_IDROOM    				= "idRoom"    	 			;
 	public final static String 	COLUMN_IDUSER       			= "idUser"       			;
 	public final static String 	COLUMN_CREATETIME  				= "create_time"  			;
-	public final static String 	COLUMN_STARTTIME  				= "start_time"  				;
+	public final static String 	COLUMN_STARTTIME  				= "start_time"  			;
 	public final static String 	COLUMN_ENDTIME  				= "end_time"  			;
+	public final static String 	COLUMN_STATUS    				= "status"    		;
 	
 	private int idRoomReservation;
 	private int idRoom;
@@ -17,6 +18,7 @@ public class RoomReservation {
 	private GregorianCalendar createTime;
 	private GregorianCalendar startTime;
 	private GregorianCalendar endTime;
+	private int status;
 	
 	public RoomReservation() {
 		
@@ -59,5 +61,11 @@ public class RoomReservation {
 		this.endTime = endTime;
 	}
 	
-	
+	public int getStatus() {
+		return status;
+	}
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
 }

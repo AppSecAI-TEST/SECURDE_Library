@@ -23,7 +23,7 @@
 		<div class="navbar-right" id="nav-buttons">
 
 			<%
-				if ((int) request.getAttribute("loggedin") != -1) {
+				if (request.getAttribute("loggedin")==null || -1 == (int) request.getAttribute("loggedin")) {
 			%>
 			<button id="nav-sign-up" class="btn btn-default"
 				onclick="location.href='SignUp.jsp'">Sign up</button>

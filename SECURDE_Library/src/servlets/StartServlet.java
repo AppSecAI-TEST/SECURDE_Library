@@ -32,7 +32,7 @@ public class StartServlet extends HttpServlet {
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
-		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request));
+		request.getSession().setAttribute("loggedin", ServerService.CheckLoggedIn(request));
 		request.getRequestDispatcher("index.jsp").forward(request, response);
 	}
 
