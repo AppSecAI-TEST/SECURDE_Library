@@ -9,9 +9,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import db.DBPool;
-import models.Books;
 import models.RoomReservation;
-import models.Rooms;
 
 public class RoomReservationService {
 	
