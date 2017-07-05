@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import db.DBPool;
+import models.UnlockedUsers;
 import models.User;
 
 public class UserService {
@@ -343,6 +344,35 @@ public class UserService {
 		}
 
 		return id;
+	}
+	
+	public static void unlockUser(int id){
+		//some unlocking functions
+		String sql = "INSERT INTO "+UnlockedUsers.TABLE_NAME+" ("+UnlockedUsers.COLUMN_IDUSER+") VALUES (?);";
+
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+
+		PreparedStatement pstmt = null;
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, id);
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 	}
 
 }

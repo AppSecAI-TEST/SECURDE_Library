@@ -66,9 +66,7 @@ public class AddUserServlet extends HttpServlet {
 		u.setUserName(request.getParameter("username"));
 		u.setPassword(request.getParameter("password"));
 		
-	
-		UserService userservice = new UserService();
-		userservice.addUser(u);
+		UserService.addUser(u);
 		
 		response.sendRedirect("Registered.html");;
 	}
