@@ -55,38 +55,41 @@
 							<div class="thumbnail">
 								<div class="caption">
 									<div class="btn-group cart pull-right">
-										<button type="button" class="btn btn-success">Details
-										</button>
+										<form action="book_detail" method="get">
+											<input type="text" name="idBooks" value="${book.idBooks}"
+												class="invisible" />
+											<button type="submit" class="btn btn-success">Details
+											</button>
+										</form>
 									</div>
 									<h4>
-										<a href="#">${book.title}</a>
+										${book.title}
 									</h4>
 									<h5>
-										<a href="#">Author: ${book.author}</a>
+										Author: ${book.author}
 									</h5>
 									<h5>
-										<a href="#">Publisher: ${book.publisher}</a>
+										Publisher: ${book.publisher}
 									</h5>
 									<h6>
-										<a href="#">Year Published: ${book.year}</a>
+										Year Published: ${book.year}
 									</h6>
 									<h6>
-										<a href="#">Type: 
-										<c:choose>
-											<c:when test="${book.type==0}">
+										Type: <c:choose>
+												<c:when test="${book.type==0}">
 												Book
 											</c:when>
-											<c:when test="${book.type==1}">
+												<c:when test="${book.type==1}">
 												Magazine
 											</c:when>
-											<c:when test="${book.type==2}">
+												<c:when test="${book.type==2}">
 												Thesis
 											</c:when>
-											<c:otherwise>
+												<c:otherwise>
 												Unknown
 											</c:otherwise>
-										</c:choose>
-										</a>
+											</c:choose>
+										
 									</h6>
 								</div>
 								<div class="caption">
