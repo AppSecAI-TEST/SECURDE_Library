@@ -68,9 +68,7 @@ public class AddBookServlet extends HttpServlet {
 		}
 		b.setType(type1);
 		
-		BooksService bookservice = new BooksService();
-		
-		int bookid = bookservice.addBook(b);
+		int bookid = BooksService.addBook(b);
 		String[] taglist = request.getParameter("tags").split(",");
 		
 		for(int i=0; i<taglist.length; i++){
@@ -80,12 +78,7 @@ public class AddBookServlet extends HttpServlet {
 			TagsService tagsservice = new TagsService();
 			tagsservice.addTag(t);
 		}
-		// --------- CHECK LOGIN ---------
-
-		// ------------ END CHECK LOGIN --------
 		
-		
-		// EDIT
 		response.sendRedirect("ReserveBook.jsp");
 
 	}

@@ -12,16 +12,18 @@ import javax.servlet.http.HttpServletResponse;
 
 import models.BookReservation;
 import models.Books;
+import models.Tags;
 import models.User;
 import services.BookReservationService;
 import services.BooksService;
 import services.ServerService;
+import services.TagsService;
 import services.UserService;
 
 /**
  * Servlet implementation class Controller
  */
-@WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve" })
+@WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve" ,"/addbook", "/addbookpage" })
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -42,7 +44,10 @@ public class Controller extends HttpServlet {
 		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request));
-
+		User user = null;
+		if((int)request.getAttribute("loggedin") != -1){
+			user = UserService.getUserByID((int)request.getAttribute("loggedin"));
+		}
 		String servletPath = request.getServletPath(); // returns either /add,
 														// /toggle, /main
 
@@ -71,6 +76,55 @@ public class Controller extends HttpServlet {
 			request.setAttribute("reservation", bookreservation);
 			request.setAttribute("book", bookreserve);
 			request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
+			break;
+		case "/addbookpage":
+			if(user!=null && (user.getAccessLevel() == 3 || user.getAccessLevel() == 4)){
+				request.getRequestDispatcher("AdminAddBook.jsp").forward(request, response);
+			}else{
+				response.sendRedirect("home");				
+			}
+			break;
+		case "/addbook":
+			if(user!=null && (user.getAccessLevel() == 3 || user.getAccessLevel() == 4)){
+				Books b = new Books();
+				
+				b.setTitle			(request.getParameter("book_title"));
+				b.setAuthor			(request.getParameter("author"));
+				b.setPublisher		(request.getParameter("publisher"));
+				b.setYear			(Integer.parseInt(request.getParameter("year")));
+				b.setLocation		(Double.parseDouble(request.getParameter("location")));
+				b.setStatus(0);
+				b.setCreateTime(new GregorianCalendar());
+				String typeString = request.getParameter("type");
+				int type1 = 0;
+				
+				if("Book".equals(typeString)){
+					type1 = 0;
+				}
+				else if("Magazine".equals(typeString)){
+					type1 = 1;
+				}
+				else if("Thesis".equals(typeString)){
+					type1 = 2;
+				}
+				b.setType(type1);
+				
+				int bookid = BooksService.addBook(b);
+				String[] taglist = request.getParameter("tags").split(",");
+				
+				for(int i=0; i<taglist.length; i++){
+					Tags t = new Tags();
+					t.setBookid(bookid);
+					t.setTag(taglist[i]);
+					TagsService tagsservice = new TagsService();
+					tagsservice.addTag(t);
+				}
+				
+				request.setAttribute(Books.COLUMN_IDBOOK, bookid);
+				request.getRequestDispatcher("book_detail").forward(request, response);;
+			}else{
+				response.sendRedirect("home");
+			}
 			break;
 		case "/home":
 		default:
