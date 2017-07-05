@@ -37,7 +37,7 @@
 <script>
 	$('document').ready(function(){
 			
-			$('#edit_book').click(function(){
+			$('#submit').click(function(){
 				$('form#editbook').submit();
 			});
 			

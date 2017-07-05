@@ -34,6 +34,15 @@
 	background-color: #e0e0e0;
 }
 </style>
+<script>
+	$('document').ready(function(){
+			
+			$('#delete').click(function(){
+				$('form#deleteform').submit();
+			});
+			
+		});
+</script>
 <body>
 
 	<nav class="navbar navbar-inverse navbar-fixed-top">
@@ -74,7 +83,7 @@
 		</form>
 		
 	</div>
-	<div class="card col-md-9 col-md-offset-2">
+	<div class="card col-md-8 col-md-offset-2">
 		<div class="card-block card-space">
 			<div class="container">
 				<div class="row">
@@ -93,8 +102,11 @@
 						
 							<div class="caption">
 								<div class="btn-group cart">
-									<button type="button" class="btn btn-danger" >
+								<form  id="delete-form" action="DeleteBookServlet">
+									<input type="text" class="invisible" id="delete1" name="delete2"></input>
+									<button id="delete" type="button" class="btn btn-danger" >
 										Delete</button>	
+								</form>
 									<button type="button" class="btn btn-success">
 										Edit</button>	
 										
