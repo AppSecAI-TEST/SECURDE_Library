@@ -3,7 +3,7 @@ package models;
 public class Tags {
 	public final static String TABLE_NAME = "tags";
 	public final static String COLUMN_TAG = "tag";
-	public final static String COLUMN_POSTID = "idBook";
+	public final static String COLUMN_BOOKID = "idBook";
 	
 	private String tag;
 	private int bookid;

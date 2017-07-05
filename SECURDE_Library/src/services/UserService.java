@@ -239,7 +239,7 @@ public class UserService {
 				" SET " + User.COLUMN_LASTLOGIN + 
 				" =? " + " WHERE " + User.COLUMN_IDNUM + 
 				" =" + id + ";"; 
-		
+		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		
 		PreparedStatement pstmt = null;

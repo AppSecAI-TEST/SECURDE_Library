@@ -99,6 +99,7 @@ public class BooksService {
 				+ Books.COLUMN_TYPE + "=? "
 				+ " WHERE " + Books.COLUMN_IDBOOK + " = ?;";
 
+		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		try {
@@ -133,6 +134,8 @@ public class BooksService {
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME;
+		
+		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs= null;
@@ -164,6 +167,7 @@ public class BooksService {
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE " + Books.COLUMN_IDBOOK + "=?;";
 
 		Books b = new Books();
+		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs= null;
@@ -191,7 +195,7 @@ public class BooksService {
 		
 	}
 
-	public ArrayList<Books> getAllBooksBySearch(String keyword){
+	public ArrayList<Books> getBooksBySearch(String keyword){
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE "
@@ -199,17 +203,17 @@ public class BooksService {
 				+ Books.COLUMN_AUTHOR + " =? OR "
 				+ Books.COLUMN_PUBLISHER + " =? OR "
 				+ Books.COLUMN_YEAR	+ " =?;";
-		
+		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs= null;
 		
 		try{
 			pstmt= conn.prepareStatement(sql);
-			pstmt.setString(1, keyword);
-			pstmt.setString(2, keyword);
-			pstmt.setString(3, keyword);
-			pstmt.setString(4, keyword);
+			pstmt.setString(1, "%"+keyword+"%");
+			pstmt.setString(2, "%"+keyword+"%");
+			pstmt.setString(3, "%"+keyword+"%");
+			pstmt.setString(4, "%"+keyword+"%");
 			
 			rs = pstmt.executeQuery();
 			while(rs.next()){
@@ -232,7 +236,7 @@ public class BooksService {
 		return books;
 	}	
 
-	public ArrayList<Books> getAllBooksByAdvancedSearch(String title, String author, String publisher, String year, int type){
+	public ArrayList<Books> getBooksByAdvancedSearch(String title, String author, String publisher, int year, int type){
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE "
@@ -242,17 +246,31 @@ public class BooksService {
 				+ Books.COLUMN_TYPE + " =? AND "
 				+ Books.COLUMN_YEAR	+ " =?;";
 		
+		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs= null;
 		
 		try{
 			pstmt= conn.prepareStatement(sql);
+			if(!"".equals(title)) {
+				title = "%"+title+"%";
+			}
 			pstmt.setString(1, title);
+			
+			if(!"".equals(author)) {
+				title = "%"+author+"%";
+			}
 			pstmt.setString(2, author);
+			
+			if(!"".equals(publisher)) {
+				title = "%"+publisher+"%";
+			}
 			pstmt.setString(3, publisher);
+			
 			pstmt.setInt(4, type);
-			pstmt.setString(5, year);
+			
+			pstmt.setInt(5, year);
 			
 			rs = pstmt.executeQuery();
 			while(rs.next()){

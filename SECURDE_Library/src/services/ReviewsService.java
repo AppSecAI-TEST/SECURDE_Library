@@ -10,7 +10,7 @@ import java.util.Date;
 import db.DBPool;
 import models.Reviews;
 
-public class ReviewsServices {
+public class ReviewsService {
 	
 	public void addReview(Reviews r){
 		String sql ="INSERT INTO " + Reviews.TABLE_NAME + " (" 
@@ -60,6 +60,7 @@ public class ReviewsServices {
 		String sql = "Select * from " + Reviews.TABLE_NAME + " WHERE "
 				+ Reviews.COLUMN_BOOKID + " =?;";
 		
+		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs= null;
