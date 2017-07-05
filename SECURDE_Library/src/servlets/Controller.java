@@ -1,6 +1,7 @@
 package servlets;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -24,7 +25,7 @@ import services.UserService;
  * Servlet implementation class Controller
  */
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
-		"/add_admins_page", "/add_admins" })
+		"/add_admins_page", "/add_admins", "/edit_book" })
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -60,6 +61,8 @@ public class Controller extends HttpServlet {
 		case "/book_detail":
 			Books bookdetail = BooksService.getBookById(Integer.parseInt(request.getParameter(Books.COLUMN_IDBOOK)));
 			request.setAttribute("book", bookdetail);
+			if(user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3))
+				request.setAttribute("editable", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
 			break;
 
@@ -79,14 +82,14 @@ public class Controller extends HttpServlet {
 			request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
 			break;
 		case "/addbookpage":
-			if (user != null && (user.getAccessLevel() == 3 || user.getAccessLevel() == 4)) {
+			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)) {
 				request.getRequestDispatcher("AdminAddBook.jsp").forward(request, response);
 			} else {
 				response.sendRedirect("home");
 			}
 			break;
 		case "/addbook":
-			if (user != null && (user.getAccessLevel() == 3 || user.getAccessLevel() == 4)) {
+			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)) {
 				Books b = new Books();
 
 				b.setTitle(request.getParameter("book_title"));
@@ -124,6 +127,23 @@ public class Controller extends HttpServlet {
 				;
 			} else {
 				response.sendRedirect("home");
+			}
+			break;
+		case "/edit_book":
+			if(user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)){
+
+				int id = Integer.parseInt(request.getParameter(Books.COLUMN_IDBOOK));
+				Books b = BooksService.getBookById(id);
+				request.setAttribute("show_book", b);
+				
+				ArrayList<Tags> t = (new TagsService()).getTagsPerBook(b.getIdBooks());
+				request.setAttribute("show_book_tags", t);
+				
+
+				request.getRequestDispatcher("AdminEditBook.jsp").forward(request, response);
+			}else{
+				response.sendRedirect("home");
+				
 			}
 			break;
 		case "/add_admins_page":
@@ -182,6 +202,9 @@ public class Controller extends HttpServlet {
 			break;
 		case "/home":
 		default:
+			if(user != null){
+				request.setAttribute("access", user.getAccessLevel());
+			}
 			request.getRequestDispatcher("index.jsp").forward(request, response);
 
 		}

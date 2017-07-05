@@ -174,6 +174,14 @@ public class BooksService {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return books;
@@ -205,6 +213,14 @@ public class BooksService {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return b;
@@ -247,6 +263,14 @@ public class BooksService {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return books;
@@ -304,6 +328,14 @@ public class BooksService {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return books;

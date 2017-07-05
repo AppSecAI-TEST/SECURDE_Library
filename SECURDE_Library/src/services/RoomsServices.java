@@ -34,6 +34,14 @@ public class RoomsServices {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return rooms;

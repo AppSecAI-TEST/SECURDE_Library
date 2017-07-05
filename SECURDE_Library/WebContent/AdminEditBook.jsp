@@ -1,3 +1,6 @@
+<%@page import="java.util.ArrayList"%>
+<%@page import="models.Tags"%>
+<%@page import="java.util.List"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,73 +14,48 @@
 <link rel="icon" href="../../favicon.ico">
 
 <title>Jumbotron Template for Bootstrap</title>
-
-<!-- Bootstrap core CSS -->
-<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-<link href="css/style.css" rel="stylesheet">
-
-<!-- Custom styles for this template -->
-<link href="jumbotron.css" rel="stylesheet">
-
-<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-<!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+<jsp:include page="components/headers.jsp"></jsp:include>
 </head>
 <style>
-#editbook{
-	margin-top:10%;
-	padding:20px;
+#editbook {
+	margin-top: 10px;
+	padding: 20px;
 	border-radius: 10px;
 	background-color: #e0e0e0;
 }
-
 </style>
 <script>
-	$('document').ready(function(){
-			
-			$('#submit').click(function(){
-				$('form#editbook').submit();
-			});
-			
+	$('document').ready(function() {
+
+		$('#submit').click(function() {
+			$('form#editbook').submit();
 		});
+
+	});
 </script>
-		
+
 <body>
 
-	<nav class="navbar navbar-inverse navbar-fixed-top">
-		<div class="container">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle collapsed"
-					data-toggle="collapse" data-target="#navbar" aria-expanded="false"
-					aria-controls="navbar">
-					<span class="sr-only">Toggle navigation</span> <span
-						class="icon-bar"></span> <span class="icon-bar"></span> <span
-						class="icon-bar"></span>
-				</button>
-				<a class="navbar-brand" href="index.html">DLSU SHS Library</a>
-			</div>
-			<div id="navbar" class="navbar-collapse collapse">
-				<form class="navbar-form navbar-right">
-					<div class="form-group">
-						<input type="text" placeholder="Email" class="form-control">
-					</div>
-					<div class="form-group">
-						<input type="password" placeholder="Password" class="form-control">
-					</div>
-					<button type="submit" class="btn btn-success">Sign in</button>
-				</form>
-			</div>
-			<!--/.navbar-collapse -->
-		</div>
-	</nav>
+	<%
+		String tagnames = "";
+		List<Tags> tags = new ArrayList<Tags>();
+		if (request.getAttribute("show_book_tags") instanceof ArrayList) {
+			tags = (ArrayList<Tags>) request.getAttribute("show_book_tags");
+		}
+		for (int i = 0; i < tags.size(); i++) {
+			tagnames += tags.get(i).getTag();
+			if (i < tags.size() - 1) {
+				tagnames += ",";
+			}
+		}
+	%>
 
-	<div action="EditBookServlet" method="post" id="editbook" class="col-md-6 col-md-offset-3">
-		
-		<form>
-		
-		<div class="form-group">
+	<jsp:include page="components/navbar.jsp"></jsp:include>
+	<div class="col-md-6 col-md-offset-3 clearfix">
+
+		<form action="update_book" method="post" id="editbook">
+			<input type="text" class="invisible" value="${show_book.idBooks}" name="idBooks"/>
+			<div class="form-group">
 				<label for="type">Type:</label> <br>
 				<c:if test="${show_book.type eq 0 }">
 					<select class="selectpicker" id="booktype" name="updated_type">
@@ -86,64 +64,64 @@
 						<option>Thesis</option>
 					</select>
 				</c:if>
-				
+
 				<c:if test="${show_book.type eq 1 }">
 					<select class="selectpicker" id="booktype" name="updated_type">
-						<option >Book</option>
+						<option>Book</option>
 						<option selected="selected">Magazine</option>
 						<option>Thesis</option>
 					</select>
 				</c:if>
-				
+
 				<c:if test="${show_book.type eq 2 }">
 					<select class="selectpicker" id="booktype" name="updated_type">
-						<option >Book</option>
+						<option>Book</option>
 						<option>Magazine</option>
 						<option selected="selected">Thesis</option>
 					</select>
 				</c:if>
 			</div>
-				<div class="form-group">
-				<label for="name">Book Title</label> <input type="text" value="${show_book.title}" class="form-control" id="booktitle" name="updated_title" required/>
+			<div class="form-group">
+				<label for="name">Book Title</label> <input type="text"
+					value="${show_book.title}" class="form-control" id="booktitle"
+					name="updated_title" required />
 			</div>
 			<div class="form-group">
 				<label for="email">Author:</label> <input type="text"
-					class="form-control" value="${show_book.author}" name="updated_author" id="auth">
+					class="form-control" value="${show_book.author}"
+					name="updated_author" id="auth">
 			</div>
 			<div class="form-group">
 				<label for="pwd">Publisher:</label> <input type="text"
-					class="form-control" value="${show_book.publisher}" name="updated_publisher" id="pub">
+					class="form-control" value="${show_book.publisher}"
+					name="updated_publisher" id="pub">
 			</div>
 			<div class="form-group">
 				<label for="cpwd">Published Year:</label> <input type="text"
-					class="form-control" value="${show_book.year}" name="updated_year" id="pubyear">
+					class="form-control" value="${show_book.year}" name="updated_year"
+					id="pubyear">
+			</div>
+			
+			<div class="form-group">
+				<label for="cpwd">Location:</label> <input type="text"
+					class="form-control" value="${show_book.location}" name="updated_location"
+					id="pubyear">
 			</div>
 			<div class="form-group">
-				<label for="cpwd">Tags:</label> 
-				String tagnames;
-							<c:forEach var="t" items="${show_book_tags}">
-								   tagnames+= "${t.tag}" + ",";
-							</c:forEach>
-					<input type="text" class="form-control" value=tagnames name="updated_tags" id="desc">
+				<label for="cpwd">Tags:</label> <input type="text"
+					class="form-control" value="<%=tagnames%>" name="updated_tags"
+					id="desc">
 			</div>
 			<button class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
 			<button type="submit" class="btn btn-success col-md-4 btn-space">Save</button>
 		</form>
+		<br>
+		<form action="delete_book" method="post">
+			<input type="text" class="invisible" value="${show_book.idBooks}" name="idBooks"/>
+			<button type="submit" class="btn btn-danger col-md-offset-6 col-md-4">DELETE</button>
+		</form>
 	</div>
 
 
-
-
-	<!-- Bootstrap core JavaScript
-    ================================================== -->
-	<!-- Placed at the end of the document so the pages load faster -->
-	<script
-		src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<script>
-		window.jQuery
-				|| document
-						.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')
-	</script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

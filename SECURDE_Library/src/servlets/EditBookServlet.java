@@ -16,7 +16,7 @@ import services.TagsService;
 /**
  * Servlet implementation class EditBookServlet
  */
-@WebServlet("/EditBookServlet")
+@WebServlet("/update_book")
 public class EditBookServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
@@ -35,7 +35,15 @@ public class EditBookServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 		
-		Books b = new Books();
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+
+		Books b = BooksService.getBookById(Integer.parseInt(request.getParameter("idBooks")));
 		b.setTitle			(request.getParameter("updated_title"));
 		b.setAuthor			(request.getParameter("updated_author"));
 		b.setPublisher		(request.getParameter("updated_publisher"));
@@ -56,13 +64,6 @@ public class EditBookServlet extends HttpServlet {
 		}
 		b.setType(type1);
 		
-		// --------- CHECK LOGIN ---------
-		
-		// ------------ END CHECK LOGIN --------
-		
-	
-		BooksService bservice = new BooksService();
-		
 		
 		String[] taglist = request.getParameter("updated_tags").split(",");
 		
@@ -73,16 +74,9 @@ public class EditBookServlet extends HttpServlet {
 			tagsservice.addTag(t);
 		}
 		
-		bservice.updateBook(b);
-
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
+		BooksService.updateBook(b);
+		
+		response.sendRedirect("home");
 	}
 
 }

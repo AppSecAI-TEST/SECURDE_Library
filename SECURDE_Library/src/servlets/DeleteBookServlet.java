@@ -14,7 +14,7 @@ import services.BooksService;
 /**
  * Servlet implementation class DeleteBookServlet
  */
-@WebServlet("/DeleteBookServlet")
+@WebServlet("/delete_book")
 public class DeleteBookServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
@@ -42,7 +42,7 @@ public class DeleteBookServlet extends HttpServlet {
 		//doGet(request, response);
 		int idBook = Integer.parseInt(request.getParameter(Books.COLUMN_IDBOOK));
 		BooksService.deleteBook(idBook);
-		request.getRequestDispatcher("inbox.jsp").forward(request, response);
+		request.getRequestDispatcher("home").forward(request, response);
 	}
 
 }

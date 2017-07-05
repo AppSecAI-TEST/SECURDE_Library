@@ -51,6 +51,17 @@
 												</button>
 											</c:otherwise>
 										</c:choose>
+										
+										<c:if test="${editable != null}">
+										<form action="edit_book" method="post">
+													<input type="text" class="invisible"
+														value="${book.idBooks}" name="idBooks" />
+													<button type="submit" class="btn btn-default">Edit Book
+													</button>
+
+												</form>
+										</c:if>
+										
 									</c:if>
 									<br>
 								</div>
