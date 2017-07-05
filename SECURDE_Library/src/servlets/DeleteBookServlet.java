@@ -41,7 +41,7 @@ public class DeleteBookServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		//doGet(request, response);
 		int idBook = Integer.parseInt(request.getParameter(Books.COLUMN_IDBOOK));
-		(new BooksService()).deleteBook(idBook);
+		BooksService.deleteBook(idBook);
 		request.getRequestDispatcher("inbox.jsp").forward(request, response);
 	}
 
