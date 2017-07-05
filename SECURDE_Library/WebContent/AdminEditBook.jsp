@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,7 +121,7 @@
 			<div class="form-group">
 				<label for="cpwd">Tags:</label> 
 				String tagnames;
-							<c:forEach var="t" items="${show_post_tags}">
+							<c:forEach var="t" items="${show_book_tags}">
 								   tagnames+= "${t.tag}" + ",";
 							</c:forEach>
 					<input type="text" class="form-control" value=tagnames name="updated_tags" id="desc">
