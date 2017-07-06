@@ -5,13 +5,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 import db.DBPool;
 import models.Rooms;
 
 public class RoomsServices {
 	
-	public ArrayList<Rooms> getAllRooms(){
+	public static ArrayList<Rooms> getAllRooms(){
 		ArrayList<Rooms> rooms = new ArrayList<Rooms>();
 		
 		String sql = "Select * from " + Rooms.TABLE_NAME;
@@ -46,7 +47,15 @@ public class RoomsServices {
 		
 		return rooms;
 	}
-	
+
+	public static List<Rooms> getRoomByTime(int start, int end){
+		List<Rooms> rooms = new ArrayList<Rooms>();
+		
+		
+		
+		
+		return rooms;
+	}
 
 
 

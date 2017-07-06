@@ -17,6 +17,7 @@ import models.Tags;
 import models.User;
 import services.BookReservationService;
 import services.BooksService;
+import services.RoomsServices;
 import services.ServerService;
 import services.TagsService;
 import services.UserService;
@@ -25,7 +26,7 @@ import services.UserService;
  * Servlet implementation class Controller
  */
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
-		"/add_admins_page", "/add_admins", "/edit_book" })
+		"/add_admins_page", "/add_admins", "/edit_book", "/room_search" })
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -199,6 +200,19 @@ public class Controller extends HttpServlet {
 			} else {
 				response.sendRedirect("home");
 			}
+			break;
+		case "/room_reserve_page":
+			
+			int starttime=0;
+			int endtime=0;
+			if(request.getParameter("start")!=null)
+				starttime = Integer.parseInt(request.getParameter("start")) ;
+			if(request.getParameter("end")!=null)
+				endtime = Integer.parseInt(request.getParameter("end"));
+			
+			
+			request.setAttribute("rooms", RoomsServices.getAllRooms());
+			request.getRequestDispatcher("RoomSearch.jsps").forward(request, response);
 			break;
 		case "/home":
 		default:

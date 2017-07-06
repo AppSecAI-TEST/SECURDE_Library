@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
+	<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,7 @@
 
 <title>DLSU-LIB : Room Reservations</title>
 
-	<jsp:include page="components/headers.jsp" />
+<jsp:include page="components/headers.jsp" />
 
 
 </head>
@@ -44,7 +45,7 @@
 		<div id="searchRooms" class="col-md-3">
 
 			<form id="searchForm" method="post" class="form-horizontal">
-
+				<!-- 
 				<div class="form-group col-md-12">
 					<label>Date</label>
 					<div>
@@ -55,18 +56,20 @@
 						</div>
 					</div>
 				</div>
+				 -->
 				<div class="form-group col-md-12">
-					<label>Start Time (0000-2359)</label>
+					<label>Start Time (0600-2100)</label>
 					<div>
-						<input type="text" class="form-control" name="name" />
+						<input type="number" class="form-control" name="start" />
 					</div>
 				</div>
 				<div class="form-group col-md-12">
-					<label>End Time (0000-2359)</label>
+					<label>End Time (0700-2200)</label>
 					<div>
-						<input type="text" class="form-control" name="name" />
+						<input type="number" class="form-control" name="end" />
 					</div>
 				</div>
+				<!-- 
 				<div class="form-group col-md-12">
 					<label>Floor</label>
 					<div>
@@ -81,7 +84,7 @@
 						</select>
 					</div>
 				</div>
-
+ -->
 				<button type="submit"
 					class="btn btn-success col-md-4 col-md-offset-4">Search</button>
 			</form>
@@ -91,9 +94,14 @@
 			<div>
 				<h2>Room Reservation > Results</h2>
 				<div class="list-group">
-					<a href="#" class="list-group-item">Meeting Room 1</a>
-					<a href="#" class="list-group-item">Meeting Room 2</a>
-					<a href="#"	class="list-group-item">Thesis Room 1</a>
+
+					<c:forEach items="${rooms}" var="room">
+						<form action="getroom" method="get">
+							<input type="text" class="invisible" value="${room.idRooms}"
+								name="idRooms" />
+							<button type="submit">${room.name}</button>
+						</form>
+					</c:forEach>
 				</div>
 			</div>
 		</div>
