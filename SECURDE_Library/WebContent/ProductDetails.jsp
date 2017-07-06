@@ -34,30 +34,71 @@
 						<div class="thumbnail">
 							<div class="caption">
 								<div class="btn-group cart pull-right margin card-space">
+									<c:if test="${loggedin != -1}">
 
-									<br>
-								</div>
-								<h4>${room.name}</h4>
-
-							</div>
-							<div class="caption">
-								<c:forEach items="${slots}" var="slot">
-									<p>
 										<c:choose>
-											<c:when test="${slot.status==0}">
-												<form action="reserve_room" method="post">
-													<input class="invisible" name="slot" value="${slot.idSlot}" />
-													<button type="submit" class="btn btn-default">${slot.start}
-														- ${slot.end}</button>
+											<c:when test="${book.status==0}">
+												<form action="book_reserve" method="post">
+													<input type="text" class="invisible"
+														value="${book.idBooks}" name="idBooks" />
+													<button type="submit" class="btn btn-success">Reserve
+													</button>
+
 												</form>
 											</c:when>
-											<c:when test="${slot.status==1}">
-												<button type="button" class="btn btn-disabled">${slot.start}
-													- ${slot.end}</button>
-											</c:when>
+											<c:otherwise>
+												<button type="button" class="btn btn-disabled">Unavailable
+												</button>
+											</c:otherwise>
 										</c:choose>
-									</p>
-								</c:forEach>
+										
+										<c:if test="${editable != null}">
+										<form action="edit_book" method="post">
+													<input type="text" class="invisible"
+														value="${book.idBooks}" name="idBooks" />
+													<button type="submit" class="btn btn-default">Edit Book
+													</button>
+
+												</form>
+										</c:if>
+										
+									</c:if>
+									<br>
+								</div>
+								<h4>${book.title}</h4>
+								<h5>Author: ${book.author}</h5>
+								<h5>Publisher: ${book.publisher}</h5>
+								<h6>Year Published: ${book.year}</h6>
+								<h6>
+									Type:
+									<c:choose>
+										<c:when test="${book.type==0}">
+												Book
+											</c:when>
+										<c:when test="${book.type==1}">
+												Magazine
+											</c:when>
+										<c:when test="${book.type==2}">
+												Thesis
+											</c:when>
+										<c:otherwise>
+												Unknown
+											</c:otherwise>
+									</c:choose>
+								</h6>
+							</div>
+							<div class="caption">
+								<p>
+									Status:
+									<c:choose>
+										<c:when test="${book.status==0}">
+												Available
+											</c:when>
+										<c:otherwise>
+												Reserved
+											</c:otherwise>
+									</c:choose>
+								</p>
 							</div>
 						</div>
 					</div>
