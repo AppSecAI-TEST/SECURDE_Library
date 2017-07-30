@@ -381,7 +381,7 @@ public class UserService {
 
 	}
 	
-	public static void updateUnlockedStatus(int id) {
+	public static void updateStatus(int id, int status) {
 		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_STATUS + " =? " + " WHERE "
 				+ User.COLUMN_IDNUM + " =" + id + ";";
 		DBPool.getInstance();
@@ -393,9 +393,11 @@ public class UserService {
 			pstmt = conn.prepareStatement(sql);
 			
 		
+			if(status==1)
+				pstmt.setInt(1, 0);
+			else
+				pstmt.setInt(1, 1);
 			
-			pstmt.setInt(1, 0);
-
 			pstmt.executeUpdate();
 
 		} catch (SQLException e) {

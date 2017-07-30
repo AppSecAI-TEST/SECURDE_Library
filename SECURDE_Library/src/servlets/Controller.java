@@ -26,7 +26,7 @@ import services.UserService;
  * Servlet implementation class Controller
  */
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
-		"/add_admins_page", "/add_admins", "/edit_book", "/room_search" })
+		"/add_admins_page", "/add_admins", "/edit_book", "/search_room" })
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -201,7 +201,7 @@ public class Controller extends HttpServlet {
 				response.sendRedirect("home");
 			}
 			break;
-		case "/room_reserve_page":
+		case "/search_room":
 			
 			int starttime=0;
 			int endtime=0;
@@ -212,7 +212,7 @@ public class Controller extends HttpServlet {
 			
 			
 			request.setAttribute("rooms", RoomsServices.getAllRooms());
-			request.getRequestDispatcher("RoomSearch.jsps").forward(request, response);
+			request.getRequestDispatcher("RoomSearch.jsp").forward(request, response);
 			break;
 		case "/home":
 		default:

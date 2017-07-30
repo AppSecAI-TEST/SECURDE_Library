@@ -11,6 +11,7 @@ import db.DBPool;
 import models.BookReservation;
 import models.RoomReservation;
 import models.RoomSlot;
+import models.User;
 
 public class RoomSlotService {
 	public ArrayList<RoomSlot> getRoomSlotByRoom(int idroom){
@@ -60,6 +61,39 @@ public class RoomSlotService {
 		return rslot;
 	}
 	
+	public static void updateStatus(int idroomslot, int status) {
+		String sql = "UPDATE " + RoomSlot.TABLE_NAME + " SET " + RoomSlot.COLUMN_STATUS + " =? " + " WHERE "
+				+ RoomSlot.COLUMN_IDROOMSLOT + " =" + idroomslot + ";";
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+
+		PreparedStatement pstmt = null;
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			
+		
+			if(status==0)
+			pstmt.setInt(1, 1);
+			else
+			pstmt.setInt(1, 0);	
+
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
 	
 	
 }

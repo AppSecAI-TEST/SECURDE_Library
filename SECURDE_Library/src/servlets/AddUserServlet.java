@@ -75,7 +75,7 @@ public class AddUserServlet extends HttpServlet {
 		
 		UserService.addUser(u);
 		
-		response.sendRedirect("Registered.html");;
+		response.sendRedirect("home");;
 	}
 
 }
