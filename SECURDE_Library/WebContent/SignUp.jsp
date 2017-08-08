@@ -11,9 +11,13 @@
 <meta name="author" content="">
 <link rel="icon" href="../../favicon.ico">
 
-<title>Jumbotron Template for Bootstrap</title>
+<title>SHS Library: Sign Up</title>
 
 	<jsp:include page="components/headers.jsp" />
+	<script type="text/javascript" src="strength-meter/password-score/dist/js/password-score.js"></script>
+<script type="text/javascript" src="strength-meter/password-score/dist/js/password-score-options.js"></script>
+<script type="text/javascript" src="strength-meter/dist/js/bootstrap-strength-meter.js"></script>
+
 </head>
 <style>
 #sign-in {
@@ -28,8 +32,36 @@
 
 <script>
 	$(document).ready(function() {
+		
+		$('#pwd').strengthMeter('text', {
+            container: $('#example-text-hierarchy-text'),
+            hierarchy: {
+                '0': ['text-danger', 'ridiculous'],
+                '10': ['text-danger', 'very weak'],
+                '20': ['text-warning', 'weak'],
+                '30': ['text-warning', 'good'],
+                '40': ['text-success', 'strong'],
+                '50': ['text-success', 'very strong']
+            }
+        });
+		
 		$('#submit').click(function() {
-			$('#sign-in-form').submit();
+			
+
+			var pass = $('#pwd').val();
+			var score = new Score(pass);
+		
+			var scoreValue = score.calculateEntropyScore();
+			
+			console.log(scoreValue);
+			
+			if(pass.length < 8){
+				$('#pwd-error').val();
+			}else{
+				
+			}
+			
+			
 		});
 
 	});
@@ -89,7 +121,15 @@
 			<div class="form-group">
 				<label for="pwd">Password:</label> <input type="password"
 					class="form-control" id="pwd" name="password">
+					 <div class="col-sm-6" id="pwd-error" style="font-weight:bold;padding:6px 12px;">
 			</div>
+			</div>
+						<div class="form-group">
+				<label for="pwd">Password Strength:</label> <div class="col-sm-6" id="example-text-hierarchy-text" style="font-weight:bold;padding:6px 12px;">
+			</div>
+			</div>
+ 
+			<p id="password-error"></p>
 			<div class="form-group">
 				<label for="cpwd">Confirm Password:</label> <input type="password"
 					class="form-control" id="cpwd">
@@ -102,9 +142,9 @@
 				<label for="answer">Secret Answer:</label> <input type="password"
 					class="form-control" id="answer" name="secret_answer">
 			</div>
-			<button id="cancel"
+			<button type="button" id="cancel"
 				class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
-			<button id="submit" class="btn btn-success col-md-4 btn-space">Submit</button>
+			<button type="button" id="submit" class="btn btn-success col-md-4 btn-space">Submit</button>
 		</form>
 	</div>
 

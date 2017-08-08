@@ -9,7 +9,7 @@
 <meta name="author" content="">
 <link rel="icon" href="../../favicon.ico">
 
-<title>Jumbotron Template for Bootstrap</title>
+<title>SHS Library: Add Book</title>
 
 <jsp:include page="components/headers.jsp"/>
 </head>
