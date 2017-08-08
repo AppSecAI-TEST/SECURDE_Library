@@ -10,15 +10,13 @@ public class RoomReservation {
 	public final static String 	COLUMN_CREATETIME  				= "create_time"  			;
 	public final static String 	COLUMN_STARTTIME  				= "start_time"  			;
 	public final static String 	COLUMN_ENDTIME  				= "end_time"  			;
-	public final static String 	COLUMN_STATUS    				= "status"    		;
 	
 	private int idRoomReservation;
 	private int idRoom;
 	private int idUser;
 	private GregorianCalendar createTime;
-	private GregorianCalendar startTime;
-	private GregorianCalendar endTime;
-	private int status;
+	private int startTime;
+	private int endTime;
 	
 	public RoomReservation() {
 		
@@ -48,24 +46,18 @@ public class RoomReservation {
 	public void setCreateTime(GregorianCalendar createTime) {
 		this.createTime = createTime;
 	}
-	public GregorianCalendar getStartTime() {
+	public int getStartTime() {
 		return startTime;
 	}
-	public void setStartTime(GregorianCalendar startTime) {
+	public void setStartTime(int startTime) {
 		this.startTime = startTime;
 	}
-	public GregorianCalendar getEndTime() {
+	public int getEndTime() {
 		return endTime;
 	}
-	public void setEndTime(GregorianCalendar endTime) {
+	public void setEndTime(int endTime) {
 		this.endTime = endTime;
 	}
 	
-	public int getStatus() {
-		return status;
-	}
-	public void setStatus(int status) {
-		this.status = status;
-	}
 
 }

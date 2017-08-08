@@ -1,5 +1,7 @@
 package services;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,14 +13,15 @@ import java.util.GregorianCalendar;
 import db.DBPool;
 import models.UnlockedUsers;
 import models.User;
+import security.Security;
 
 public class UserService {
-	public static void addUser(User u) {
+	public static void addUser(User u) throws SQLException {
 		String sql = "INSERT INTO " + User.TABLE_NAME + " (" + User.COLUMN_IDNUM + ", " + User.COLUMN_EMAIL + ", "
 				+ User.COLUMN_FIRSTNAME + ", " + User.COLUMN_MIDDLENAME + ", " + User.COLUMN_LASTNAME + ", "
 				+ User.COLUMN_USERNAME + ", " + User.COLUMN_BIRTHDATE + ", " + User.COLUMN_SECRETQUESTION + ", "
 				+ User.COLUMN_SECRETANSWER + ", " + User.COLUMN_CREATETIME + ", " + User.COLUMN_LASTLOGIN + ", "
-				+ User.COLUMN_ACCESSLEVEL + ", " + User.COLUMN_PASS + ") " + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
+				+ User.COLUMN_ACCESSLEVEL + ", "+ User.COLUMN_PASS + ") " + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
 
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -43,12 +46,9 @@ public class UserService {
 			pstmt.setDate(11, lastlogin);
 			pstmt.setInt(12, u.getAccessLevel());
 			pstmt.setString(13, u.getPassword());
-
+			
 			pstmt.executeUpdate();
 
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally {
 			try {
 				pstmt.close();
@@ -289,7 +289,36 @@ public class UserService {
 
 		return u;
 	}
+	
+	public static void updatePassword(String password, String salt, int id) {
+		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? "  +" WHERE "
+				+ User.COLUMN_IDNUM + " =?;";
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
 
+		PreparedStatement pstmt = null;
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+
+			pstmt.setString(1, password);
+			pstmt.setInt(2, id);
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
 	public static void deleteUser(String idNum) {
 		String sql = "DELETE FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_IDNUM + " = ?;";
 
@@ -351,7 +380,7 @@ public class UserService {
 	
 	public static void updateLockedStatus(int id) {
 		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_STATUS + " =? " + " WHERE "
-				+ User.COLUMN_IDNUM + " =" + id + ";";
+				+ User.COLUMN_IDNUM + " =?;";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 
@@ -360,10 +389,8 @@ public class UserService {
 		try {
 			pstmt = conn.prepareStatement(sql);
 			
-		
-			
 			pstmt.setInt(1, 1);
-
+			pstmt.setInt(2, id);
 			pstmt.executeUpdate();
 
 		} catch (SQLException e) {
@@ -446,9 +473,8 @@ public class UserService {
 
 	}
 
-	public static int logInUser(String username, String password) {
-		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_USERNAME
-				+ " = ? AND " + User.COLUMN_PASS + " =?";
+	public static int logInUser(String username, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_USERNAME +" =?";
 		int id = -1;
 
 		DBPool.getInstance();
@@ -457,7 +483,6 @@ public class UserService {
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, username);
-			pstmt.setString(2, password);
 			ResultSet rs = pstmt.executeQuery();
 
 			while (rs.next()) {
@@ -479,7 +504,13 @@ public class UserService {
 		}
 
 		if (id != -1) {
-			updateLogIn(id);
+			User u = getUserByID(id);
+			if(Security.validatePassword(password, u.getPassword())){		
+				updateLogIn(id);
+				return id;
+			}else{
+				return -1;
+			}
 		}
 
 		return id;

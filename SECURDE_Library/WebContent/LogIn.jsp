@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,7 @@
 
 <title>DLSU-LIB : Sign in</title>
 
-	<jsp:include page="components/headers.jsp" />
+<jsp:include page="components/headers.jsp" />
 </head>
 <style>
 #sign-in {
@@ -31,7 +32,6 @@
 		$('#submit').click(function() {
 			$('#sign-in-form').submit();
 		});
-
 	});
 </script>
 
@@ -41,7 +41,11 @@
 
 
 	<div id="sign-in" class="col-md-6 col-md-offset-3">
-
+		<c:if test="${loggedin == -10}">
+			<div class="col-sm-12" id="error"
+				style="font-weight: bold; padding: 6px 12px; color: red;">
+				Username or password is incorrect.</div>
+		</c:if>
 		<form id="sign-in-form" method="post" action="login">
 			<div class="form-group">
 				<label for="name">Username:</label> <input type="text"
@@ -51,7 +55,8 @@
 				<label for="pwd">Password:</label> <input type="password"
 					class="form-control" id="pwd" name="password">
 			</div>
-			<button id="submit" class="btn btn-success col-md-4 col-md-offset-4">Log In</button>
+			<button id="submit" class="btn btn-success col-md-4 col-md-offset-4">Log
+				In</button>
 		</form>
 	</div>
 

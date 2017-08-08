@@ -96,9 +96,9 @@
 				<div class="list-group">
 
 					<c:forEach items="${rooms}" var="room">
-						<form action="getroom" method="get">
+						<form action="get_room" method="get">
 							<input type="text" class="invisible" value="${room.idRooms}"
-								name="idRooms" />
+								name="idRooms"/>
 							<button type="submit">${room.name}</button>
 						</form>
 					</c:forEach>

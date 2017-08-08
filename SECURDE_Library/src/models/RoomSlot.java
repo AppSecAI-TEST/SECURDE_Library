@@ -13,14 +13,15 @@ public class RoomSlot {
 	private int idRoomSlot;
 	private int status;
 	private int idRoom;
+	private int start_time, end_time;
+	
 	public int getIdRoom() {
 		return idRoom;
 	}
 	public void setIdRoom(int idRoom) {
 		this.idRoom = idRoom;
 	}
-	private GregorianCalendar start_time, end_time;
-	
+
 	public RoomSlot() {
 		
 	}
@@ -36,16 +37,16 @@ public class RoomSlot {
 	public void setStatus(int status) {
 		this.status = status;
 	}
-	public GregorianCalendar getStart_time() {
+	public int getStart_time() {
 		return start_time;
 	}
-	public void setStart_time(GregorianCalendar start_time) {
+	public void setStart_time(int start_time) {
 		this.start_time = start_time;
 	}
-	public GregorianCalendar getEnd_time() {
+	public int getEnd_time() {
 		return end_time;
 	}
-	public void setEnd_time(GregorianCalendar end_time) {
+	public void setEnd_time(int end_time) {
 		this.end_time = end_time;
 	}
 

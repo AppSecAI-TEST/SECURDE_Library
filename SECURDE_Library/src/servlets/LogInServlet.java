@@ -1,6 +1,8 @@
 package servlets;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -43,22 +45,30 @@ public class LogInServlet extends HttpServlet {
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
 		
-		int id=UserService.logInUser(username, password);
+		int id;
+		try {
+			id = UserService.logInUser(username, password);
+
+			if(id != -1){
+				request.setAttribute("loggedin", id);
+				System.out.println(request.getAttribute("loggedin"));
+				Cookie c = new Cookie("user"+User.COLUMN_IDNUM, id+"");
+				c.setMaxAge(60*60*24);
+				
+				response.addCookie(c);
+				response.sendRedirect("home");
+				
+			}
+			else{
+				request.setAttribute("loggedin", -10);
+				request.getRequestDispatcher("LogIn.jsp").forward(request, response);
+			}
+			
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		if(id != -1){
-			request.setAttribute("loggedin", id);
-			System.out.println(request.getAttribute("loggedin"));
-			Cookie c = new Cookie("user"+User.COLUMN_IDNUM, id+"");
-			c.setMaxAge(60*60*24);
-			
-			response.addCookie(c);
-			response.sendRedirect("home");
-			
-		}
-		else{
-			request.setAttribute("loggedin", -1);
-			request.getRequestDispatcher("LogIn.jsp").forward(request, response);
-		}
 		
 	}
 
