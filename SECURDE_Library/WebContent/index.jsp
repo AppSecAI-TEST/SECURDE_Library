@@ -24,13 +24,35 @@
 	<!-- Main jumbotron for a primary marketing message or call to action -->
 	<div class="jumbotron">
 		<div class="container">
-			<h1>Hello, Lasallians!</h1>
+			<h1>
+				Hello,
+				<c:choose>
+					<c:when test="${loggedin>-1}">
+${firstname}
+					</c:when>
+					<c:otherwise>
+				Lasallians!
+											</c:otherwise>
+				</c:choose>
+			</h1>
 			<p>Welcome to the new library system that will make it easier for
-				library patrons like you to reserve books and meeting rooms. Sign up
-				now!</p>
+				library patrons like you to reserve books and meeting rooms.
+				Choose from a variety of books, thesis, and magazines or reserve a room for your convenience.
+				<c:choose>
+					<c:when test="${loggedin>-1}">
+
+					</c:when>
+					<c:otherwise>Sign up
+				now!			</c:otherwise></c:choose></p>
 			<p>
+			
+				<c:choose>
+					<c:when test="${loggedin>-1}">
+
+					</c:when>
+					<c:otherwise>
 				<a class="btn btn-primary btn-lg" href="SignUp.html" role="button">Sign
-					Up &raquo;</a>
+					Up &raquo;</a>				</c:otherwise></c:choose>
 			</p>
 		</div>
 	</div>
@@ -62,23 +84,27 @@
 		</div>
 
 		<hr>
-		<%
-				if (request.getAttribute("loggedin")==null || -1 == (int) request.getAttribute("loggedin")) {
-			%>
+		<c:choose>
+					<c:when test="${loggedin>-1}">
+
 		<c:choose>
 			<c:when test="${access==2}">
-												<a href="addbookpage">Add New Book</a>
-												<a href="search_book">Book List</a>
-											</c:when>
+				<a href="addbookpage">Add New Book</a>
+				<a href="search_book">Book List</a>
+			</c:when>
 			<c:when test="${access==3}">
-												<a href="addbookpage">Add New Book</a>
-												<a href="search_book">Book List</a>
-											</c:when>
+				<a href="addbookpage">Add New Book</a>
+				<a href="search_book">Book List</a>
+			</c:when>
 			<c:when test="${access==5}">
-												<a href="add_admins_page">Add New Employees</a>
-											</c:when>
+				<a href="add_admins_page">Add New Employees</a>
+			</c:when>
 		</c:choose>
-		<%} %>
+					</c:when>
+					
+		<c:otherwise>
+</c:otherwise></c:choose>
+
 		<footer>
 			<p>&copy; 2016 LDR Production</p>
 		</footer>

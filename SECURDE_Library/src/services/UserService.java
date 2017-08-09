@@ -167,7 +167,8 @@ public class UserService {
 
 		return users;
 	}
-
+	
+	
 	public static ArrayList<User> getUsersByID(ArrayList<Integer> idNum) {
 		ArrayList<User> users = new ArrayList<User>();
 		
@@ -603,5 +604,15 @@ public class UserService {
 		}
 
 	}
+	
+	public static boolean validateUser(User u){
+		
+		if(u.getFirstName()=="" || u.getLastName() =="" || u.getMiddleName() =="" ||  u.getUserName() =="" || u.getEmail() =="" || u.getSecretAnswer()=="" || u.getSecretQuestion()==""){
+			return false;
+		}
+		
+		return true;
+	}
 
+	
 }

@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import models.User;
+import security.Security;
 
 
 /**
@@ -37,7 +38,7 @@ public class LogOutServlet extends HttpServlet {
 		if(cookielist != null)
 		for(int i=0; i<cookielist.length; i++){
 			c= cookielist[i];
-			if(c.getName().equals("user"+User.COLUMN_IDNUM)){
+			if(c.getName().equals(Security.COOKIE_NAME)){
 				System.out.println("STOPLOG");
 				c.setMaxAge(0);
 				response.addCookie(c);

@@ -157,4 +157,8 @@ public class User implements Serializable{
 		this.secretAnswer = secretAnswer;
 	}
 	
+	public String getSalt(){
+		return password.split(":")[1];
+	}
+	
 }

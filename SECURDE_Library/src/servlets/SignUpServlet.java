@@ -32,7 +32,11 @@ public class SignUpServlet extends HttpServlet {
 
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request, response));
+		
+		if((int)request.getAttribute("loggedin") < 0)
 		request.getRequestDispatcher("SignUp.jsp").forward(request, response);
+		else
+			response.sendRedirect("home");
 	}
 
 	/**

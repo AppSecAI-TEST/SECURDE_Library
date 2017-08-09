@@ -52,8 +52,9 @@ public class LogInServlet extends HttpServlet {
 
 			if(id != -1){
 				request.setAttribute("loggedin", id);
+				User u = UserService.getUserByID(id);
 				System.out.println(request.getAttribute("loggedin"));
-				Cookie c = new Cookie("user"+User.COLUMN_IDNUM, id+"");
+				Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt()+":"+id+"");
 				c.setMaxAge(60*60*1);
 				
 				response.addCookie(c);

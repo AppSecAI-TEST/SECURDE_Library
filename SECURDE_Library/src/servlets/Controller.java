@@ -6,6 +6,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -35,7 +38,7 @@ import services.UserService;
  * Servlet implementation class Controller
  */
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
-		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user" })
+		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user", "/search_book" })
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -58,7 +61,9 @@ public class Controller extends HttpServlet {
 		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request, response));
 		User user = null;
 		if ((int) request.getAttribute("loggedin") != -1) {
+			
 			user = UserService.getUserByID((int) request.getAttribute("loggedin"));
+			request.setAttribute("firstname", user.getFirstName());
 		}
 		String servletPath = request.getServletPath(); // returns either /add,
 														// /toggle, /main
@@ -90,6 +95,22 @@ public class Controller extends HttpServlet {
 			request.setAttribute("reservation", bookreservation);
 			request.setAttribute("book", bookreserve);
 			request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
+			break;
+			
+		case "/search_book":
+			response.getWriter().append("Served at: ").append(request.getContextPath());
+			List<Books> booklist = new ArrayList<Books>();
+			
+			
+			if(Security.sanitize(request.getParameter("keyword"))==null || "".equals(Security.sanitize(request.getParameter("keyword")))){
+				booklist = BooksService.getAllBooks();
+			}else{
+				System.out.println(Security.sanitize(request.getParameter("keyword")));
+				booklist = BooksService.getBooksBySearch(request.getParameter("keyword"));
+			}
+			
+			request.setAttribute("booklist", booklist);
+			request.getRequestDispatcher("BorrowBooks.jsp").forward(request, response);
 			break;
 		case "/addbookpage":
 			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)) {
@@ -163,13 +184,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/add_admins":
+			
 			if (user != null && (user.getAccessLevel() == 5)) {
 
 				try {
 				User u = new User();
 
 				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
-				u.setEmail(Security.sanitize(request.getParameter("email")));
+				u.setEmail(request.getParameter("email"));
 				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
 				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
 				u.setLastName(Security.sanitize(request.getParameter("lastname")));
@@ -207,20 +229,26 @@ public class Controller extends HttpServlet {
 
 				u.setPassword(Security.createHash(unhashed));
 
-
-				UserService.addUser(u);
-				UserService.unlockUser(u.getIdUser());
-
+				if(UserService.validateUser(u)){
+					UserService.addUser(u);
+					UserService.unlockUser(u.getIdUser());
+					response.sendRedirect("home");
+					}
+					else{
+						response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
+					}
+				
 				} catch (NoSuchAlgorithmException e) {
 					e.printStackTrace();
 
 				} catch (InvalidKeySpecException e) {
 					e.printStackTrace();
 				} catch(Exception e){
+					e.printStackTrace();
 					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed");;
 				}
 
-				request.getRequestDispatcher("home").forward(request, response);
+
 			} else {
 				response.sendRedirect("home");
 			}
@@ -268,7 +296,7 @@ public class Controller extends HttpServlet {
 				User u = new User();
 
 				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
-				u.setEmail(Security.sanitize(request.getParameter("email")));
+				u.setEmail(request.getParameter("email"));
 				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
 				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
 				u.setLastName(Security.sanitize(request.getParameter("lastname")));
@@ -294,9 +322,12 @@ public class Controller extends HttpServlet {
 				String unhashed = request.getParameter("password");
 
 				u.setPassword(Security.createHash(unhashed));
-
+				if(UserService.validateUser(u)){
 				UserService.addUser(u);
-				response.sendRedirect("home");
+				response.sendRedirect("home");}
+				else{
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
+				}
 				
 			} catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();

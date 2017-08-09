@@ -1,20 +1,23 @@
 package security;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.owasp.html.Sanitizers;
 
 public class Security {
 	
     public static final String PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA1";
-
+    public static final String COOKIE_NAME = "SECURDE_SESSION";
+    
     // The following constants may be changed without breaking existing hashes.
     public static final int SALT_BYTES = 24;
     public static final int HASH_BYTES = 24;
@@ -23,6 +26,7 @@ public class Security {
     public static final int ITERATION_INDEX = 0;
     public static final int SALT_INDEX = 1;
     public static final int PBKDF2_INDEX = 2;
+    
     
     /**
      * Returns a salted PBKDF2 hash of the password.
@@ -163,5 +167,5 @@ public class Security {
 	   PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
 	  return policy.sanitize(unsanitized);
    }
-	
+   
 }
