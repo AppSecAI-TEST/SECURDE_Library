@@ -55,7 +55,7 @@ public class Controller extends HttpServlet {
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
-		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request));
+		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request, response));
 		User user = null;
 		if ((int) request.getAttribute("loggedin") != -1) {
 			user = UserService.getUserByID((int) request.getAttribute("loggedin"));
@@ -69,7 +69,7 @@ public class Controller extends HttpServlet {
 			break;
 
 		case "/book_detail":
-			Books bookdetail = BooksService.getBookById(Integer.parseInt(request.getParameter(Books.COLUMN_IDBOOK)));
+			Books bookdetail = BooksService.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
 			request.setAttribute("book", bookdetail);
 			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3))
 				request.setAttribute("editable", true);
@@ -77,7 +77,7 @@ public class Controller extends HttpServlet {
 			break;
 
 		case "/book_reserve":
-			Books bookreserve = BooksService.getBookById(Integer.parseInt(request.getParameter(Books.COLUMN_IDBOOK)));
+			Books bookreserve = BooksService.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
 			BookReservation bookreservation = new BookReservation();
 			bookreservation.setIdBook(bookreserve.getIdBooks());
 			bookreservation.setIdUser((int) request.getAttribute("loggedin"));
@@ -102,14 +102,14 @@ public class Controller extends HttpServlet {
 			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)) {
 				Books b = new Books();
 
-				b.setTitle(request.getParameter("book_title"));
-				b.setAuthor(request.getParameter("author"));
-				b.setPublisher(request.getParameter("publisher"));
-				b.setYear(Integer.parseInt(request.getParameter("year")));
-				b.setLocation(Double.parseDouble(request.getParameter("location")));
+				b.setTitle(Security.sanitize(request.getParameter("book_title")));
+				b.setAuthor(Security.sanitize(request.getParameter("author")));
+				b.setPublisher(Security.sanitize(request.getParameter("publisher")));
+				b.setYear(Integer.parseInt(Security.sanitize(request.getParameter("year"))));
+				b.setLocation(Double.parseDouble(Security.sanitize(request.getParameter("location"))));
 				b.setStatus(0);
 				b.setCreateTime(new GregorianCalendar());
-				String typeString = request.getParameter("type");
+				String typeString = Security.sanitize(request.getParameter("type"));
 				int type1 = 0;
 
 				if ("Book".equals(typeString)) {
@@ -122,7 +122,7 @@ public class Controller extends HttpServlet {
 				b.setType(type1);
 
 				int bookid = BooksService.addBook(b);
-				String[] taglist = request.getParameter("tags").split(",");
+				String[] taglist = Security.sanitize(request.getParameter("tags")).split(",");
 
 				for (int i = 0; i < taglist.length; i++) {
 					Tags t = new Tags();
@@ -142,7 +142,7 @@ public class Controller extends HttpServlet {
 		case "/edit_book":
 			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)) {
 
-				int id = Integer.parseInt(request.getParameter(Books.COLUMN_IDBOOK));
+				int id = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
 				Books b = BooksService.getBookById(id);
 				request.setAttribute("show_book", b);
 
@@ -168,13 +168,13 @@ public class Controller extends HttpServlet {
 				try {
 				User u = new User();
 
-				u.setIdUser(Integer.parseInt(request.getParameter("userid")));
-				u.setEmail(request.getParameter("email"));
-				u.setFirstName(request.getParameter("firstname"));
-				u.setMiddleName(request.getParameter("middlename"));
-				u.setLastName(request.getParameter("lastname"));
+				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+				u.setEmail(Security.sanitize(request.getParameter("email")));
+				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
+				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+				u.setLastName(Security.sanitize(request.getParameter("lastname")));
 				int access = 0;
-				String accessString = request.getParameter("access_level");
+				String accessString = Security.sanitize(request.getParameter("access_level"));
 				switch (accessString) {
 				case "Library Manager":
 					access = 3;
@@ -190,7 +190,7 @@ public class Controller extends HttpServlet {
 				}
 
 				u.setAccessLevel(access);
-				String birthdate = request.getParameter("birthdate");
+				String birthdate = Security.sanitize(request.getParameter("birthdate"));
 				String[] dates = birthdate.split("/");
 				int month = Integer.parseInt(dates[0]);
 				int day = Integer.parseInt(dates[1]);
@@ -198,10 +198,10 @@ public class Controller extends HttpServlet {
 				u.setBirthdate(new GregorianCalendar(year, month, day));
 				u.setCreateTime(new GregorianCalendar());
 				u.setLastLogin(new GregorianCalendar());
-				u.setSecretQuestion(request.getParameter("secret_question"));
+				u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
 				String unAnswer = request.getParameter("secret_answer");
 				u.setSecretAnswer(Security.createHash(unAnswer));
-				u.setUserName(request.getParameter("username"));
+				u.setUserName(Security.sanitize(request.getParameter("username")));
 
 				String unhashed = request.getParameter("password");
 
@@ -227,30 +227,28 @@ public class Controller extends HttpServlet {
 			break;
 		case "/search_room":
 
-			int starttime = 0;
-			int endtime = 0;
-			if (request.getParameter("start") != null)
-				starttime = Integer.parseInt(request.getParameter("start"));
-			if (request.getParameter("end") != null)
-				endtime = Integer.parseInt(request.getParameter("end"));
+			if (Security.sanitize(request.getParameter("start")) != "")
+				Integer.parseInt(Security.sanitize(request.getParameter("start")));
+			if (Security.sanitize(request.getParameter("end")) != "")
+				Integer.parseInt(Security.sanitize(request.getParameter("end")));
 
 			request.setAttribute("rooms", RoomsServices.getAllRooms());
 			request.getRequestDispatcher("RoomSearch.jsp").forward(request, response);
 			break;
 		case "/get_room":
 
-			if (request.getParameter("start") != null)
-				starttime = Integer.parseInt(request.getParameter("start"));
-			if (request.getParameter("end") != null)
-				endtime = Integer.parseInt(request.getParameter("end"));
-			request.setAttribute("room", RoomsServices.getRoomById(Integer.parseInt(request.getParameter("idRooms"))));
+			if (Security.sanitize(request.getParameter("start")) != "")
+				Integer.parseInt(Security.sanitize(request.getParameter("start")));
+			if (Security.sanitize(request.getParameter("end")) != "")
+				Integer.parseInt(Security.sanitize(request.getParameter("end")));
+			request.setAttribute("room", RoomsServices.getRoomById(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
 			request.setAttribute("roomslots",
-					RoomSlotService.getRoomSlotByRoom(Integer.parseInt(request.getParameter("idRooms"))));
+					RoomSlotService.getRoomSlotByRoom(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
 			request.getRequestDispatcher("RoomDetails.jsp").forward(request, response);
 			break;
 		case "/room_reserve":
 			RoomSlot roomreserve = RoomSlotService
-					.getRoomSlotById(Integer.parseInt(request.getParameter("idRoomSlot")));
+					.getRoomSlotById(Integer.parseInt(Security.sanitize(request.getParameter("idRoomSlot"))));
 			RoomReservation roomreservation = new RoomReservation();
 			roomreservation.setIdRoom(roomreserve.getIdRoom());
 			roomreservation.setIdUser((int) request.getAttribute("loggedin"));
@@ -269,18 +267,18 @@ public class Controller extends HttpServlet {
 
 				User u = new User();
 
-				u.setIdUser(Integer.parseInt(request.getParameter("userid")));
-				u.setEmail(request.getParameter("email"));
-				u.setFirstName(request.getParameter("firstname"));
-				u.setMiddleName(request.getParameter("middlename"));
-				u.setLastName(request.getParameter("lastname"));
+				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+				u.setEmail(Security.sanitize(request.getParameter("email")));
+				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
+				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+				u.setLastName(Security.sanitize(request.getParameter("lastname")));
 				int access = 0;
-				String accessString = request.getParameter("access_level");
+				String accessString = Security.sanitize(request.getParameter("access_level"));
 				if ("Faculty".equals(accessString)) {
 					access = 1;
 				}
 				u.setAccessLevel(access);
-				String birthdate = request.getParameter("birthdate");
+				String birthdate = Security.sanitize(Security.sanitize(request.getParameter("birthdate")));
 				String[] dates = birthdate.split("/");
 				int month = Integer.parseInt(dates[0]);
 				int day = Integer.parseInt(dates[1]);
@@ -288,10 +286,10 @@ public class Controller extends HttpServlet {
 				u.setBirthdate(new GregorianCalendar(year, month, day));
 				u.setCreateTime(new GregorianCalendar());
 				u.setLastLogin(new GregorianCalendar());
-				u.setSecretQuestion(request.getParameter("secret_question"));
+				u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
 				String unAnswer = request.getParameter("secret_answer");
 				u.setSecretAnswer(Security.createHash(unAnswer));
-				u.setUserName(request.getParameter("username"));
+				u.setUserName(Security.sanitize(request.getParameter("username")));
 
 				String unhashed = request.getParameter("password");
 
@@ -306,6 +304,7 @@ public class Controller extends HttpServlet {
 			} catch (InvalidKeySpecException e) {
 				e.printStackTrace();
 			} catch(Exception e){
+				e.printStackTrace();
 				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed.");;
 			}
 

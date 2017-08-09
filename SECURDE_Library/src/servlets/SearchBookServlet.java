@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import models.Books;
+import security.Security;
 import services.BooksService;
 
 /**
@@ -47,10 +48,10 @@ public class SearchBookServlet extends HttpServlet {
 //		testbook.setType(1);
 //		booklist.add(testbook);
 		
-		if(request.getParameter("keyword")==null || "".equals(request.getParameter("keyword"))){
+		if(Security.sanitize(request.getParameter("keyword"))==null || "".equals(Security.sanitize(request.getParameter("keyword")))){
 			booklist = BooksService.getAllBooks();
 		}else{
-			System.out.println(request.getParameter("keyword"));
+			System.out.println(Security.sanitize(request.getParameter("keyword")));
 			booklist = BooksService.getBooksBySearch(request.getParameter("keyword"));
 		}
 		

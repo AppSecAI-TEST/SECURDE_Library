@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import custom_errors.LockoutException;
 import db.DBPool;
+import models.Books;
 import models.UnlockedUsers;
 import models.User;
 import security.Security;
@@ -21,7 +23,7 @@ public class UserService {
 				+ User.COLUMN_FIRSTNAME + ", " + User.COLUMN_MIDDLENAME + ", " + User.COLUMN_LASTNAME + ", "
 				+ User.COLUMN_USERNAME + ", " + User.COLUMN_BIRTHDATE + ", " + User.COLUMN_SECRETQUESTION + ", "
 				+ User.COLUMN_SECRETANSWER + ", " + User.COLUMN_CREATETIME + ", " + User.COLUMN_LASTLOGIN + ", "
-				+ User.COLUMN_ACCESSLEVEL + ", "+ User.COLUMN_PASS + ") " + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
+				+ User.COLUMN_ACCESSLEVEL + ", "+ User.COLUMN_ATTEMPT + ", " + User.COLUMN_PASS + ") " + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
 
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -45,7 +47,8 @@ public class UserService {
 			java.sql.Date lastlogin = new java.sql.Date(new Date().getTime());
 			pstmt.setDate(11, lastlogin);
 			pstmt.setInt(12, u.getAccessLevel());
-			pstmt.setString(13, u.getPassword());
+			pstmt.setInt(13, 0);
+			pstmt.setString(14, u.getPassword());
 			
 			pstmt.executeUpdate();
 
@@ -167,6 +170,7 @@ public class UserService {
 
 	public static ArrayList<User> getUsersByID(ArrayList<Integer> idNum) {
 		ArrayList<User> users = new ArrayList<User>();
+		
 
 		String sql = "Select * from " + User.TABLE_NAME;
 
@@ -273,6 +277,7 @@ public class UserService {
 				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
 				u.setUserName(rs.getString(User.COLUMN_USERNAME));
 				u.setPassword(rs.getString(User.COLUMN_PASS));
+				u.setAttempt(rs.getInt(User.COLUMN_ATTEMPT));
 
 			}
 		} catch (SQLException e) {
@@ -443,7 +448,7 @@ public class UserService {
 	}
 
 	public static void updateLogIn(int id) {
-		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_LASTLOGIN + " =? " + " WHERE "
+		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_LASTLOGIN + " =? " + " , " +  User.COLUMN_ATTEMPT + " =? "+ " WHERE "
 				+ User.COLUMN_IDNUM + " =" + id + ";";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -455,7 +460,7 @@ public class UserService {
 
 			java.sql.Date lastlogin = new java.sql.Date(new Date().getTime());
 			pstmt.setDate(1, lastlogin);
-
+			pstmt.setInt(2, 0);
 			pstmt.executeUpdate();
 
 		} catch (SQLException e) {
@@ -472,8 +477,55 @@ public class UserService {
 		}
 
 	}
+	
+	public static void updateAttempt(int id) {
+		String sql = "SELECT " + User.COLUMN_ATTEMPT + " FROM " + User.TABLE_NAME + " WHERE "
+				+ User.COLUMN_IDNUM + " =?;";
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+		int attempt=0;
+		PreparedStatement pstmt = null;
+		User u = getUserByID(id);
+		attempt = u.getAttempt();
+		System.out.println(u.getAttempt());
+		try {
+//			pstmt = conn.prepareStatement(sql);
+//			pstmt.setInt(1, id);
+//			ResultSet rs = pstmt.executeQuery();
+//			System.out.println(pstmt.toString());
+//			while(rs.next()){
+//				System.out.println(rs.getInt(User.COLUMN_ATTEMPT));
+//				attempt = rs.getInt(User.COLUMN_ATTEMPT);
+//			}
+			System.out.println("ATTEMPT-" + attempt);
+//			pstmt.close();
+			attempt++;
+			System.out.println("ATTEMPT2-" + attempt);
+			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_ATTEMPT + " =? " + " WHERE "
+					+ User.COLUMN_IDNUM + " =?;";
+			
+			pstmt = conn.prepareStatement(sel);
+			pstmt.setInt(1,attempt);
+			pstmt.setInt(2, id);
+			pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 
-	public static int logInUser(String username, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+	}
+
+
+	public static int logInUser(String username, String password) throws  InvalidKeySpecException, NoSuchAlgorithmException, LockoutException {
 		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_USERNAME +" =?";
 		int id = -1;
 
@@ -487,7 +539,6 @@ public class UserService {
 
 			while (rs.next()) {
 				id = rs.getInt(User.COLUMN_IDNUM);
-				updateLogIn(id);
 			}
 
 		} catch (SQLException e) {
@@ -505,11 +556,19 @@ public class UserService {
 
 		if (id != -1) {
 			User u = getUserByID(id);
+			
+			if(u.getAttempt() < 3){
+			
 			if(Security.validatePassword(password, u.getPassword())){		
 				updateLogIn(id);
 				return id;
 			}else{
+				updateAttempt(id);
 				return -1;
+			}
+			}else{
+				throw new LockoutException();
+				
 			}
 		}
 

@@ -31,7 +31,7 @@ public class SignUpServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 
 		response.getWriter().append("Served at: ").append(request.getContextPath());
-		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request));
+		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request, response));
 		request.getRequestDispatcher("SignUp.jsp").forward(request, response);
 	}
 

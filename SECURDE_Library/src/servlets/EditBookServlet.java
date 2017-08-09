@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import models.Books;
 import models.Tags;
+import security.Security;
 import services.BooksService;
 import services.TagsService;
 
@@ -43,15 +44,15 @@ public class EditBookServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 
-		Books b = BooksService.getBookById(Integer.parseInt(request.getParameter("idBooks")));
-		b.setTitle			(request.getParameter("updated_title"));
-		b.setAuthor			(request.getParameter("updated_author"));
-		b.setPublisher		(request.getParameter("updated_publisher"));
-		b.setYear			(Integer.parseInt(request.getParameter("updated_year")));
-		b.setLocation		(Double.parseDouble(request.getParameter("updated_location")));
+		Books b = BooksService.getBookById(Integer.parseInt(Security.sanitize(request.getParameter("idBooks"))));
+		b.setTitle			(Security.sanitize(request.getParameter("updated_title")));
+		b.setAuthor			(Security.sanitize(request.getParameter("updated_author")));
+		b.setPublisher		(Security.sanitize(request.getParameter("updated_publisher")));
+		b.setYear			(Integer.parseInt(Security.sanitize(request.getParameter("updated_year"))));
+		b.setLocation		(Double.parseDouble(Security.sanitize(request.getParameter("updated_location"))));
 		b.setStatus(0);
 		
-		String typeString = request.getParameter("updated_type");
+		String typeString = Security.sanitize(request.getParameter("updated_type"));
 		int type1 = 0;
 		if("Book".equals(typeString)){
 			type1 = 0;
@@ -65,7 +66,7 @@ public class EditBookServlet extends HttpServlet {
 		b.setType(type1);
 		
 		
-		String[] taglist = request.getParameter("updated_tags").split(",");
+		String[] taglist = Security.sanitize(request.getParameter("updated_tags")).split(",");
 		
 		for(int i=0; i<taglist.length; i++){
 			Tags t = new Tags();

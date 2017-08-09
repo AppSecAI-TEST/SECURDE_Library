@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import models.User;
+import security.Security;
 import services.UserService;
 
 /**
@@ -42,7 +43,7 @@ public class LogInServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		String username = request.getParameter("username");
+		String username = Security.sanitize(request.getParameter("username"));
 		String password = request.getParameter("password");
 		
 		int id;
@@ -53,7 +54,7 @@ public class LogInServlet extends HttpServlet {
 				request.setAttribute("loggedin", id);
 				System.out.println(request.getAttribute("loggedin"));
 				Cookie c = new Cookie("user"+User.COLUMN_IDNUM, id+"");
-				c.setMaxAge(60*60*24);
+				c.setMaxAge(60*60*1);
 				
 				response.addCookie(c);
 				response.sendRedirect("home");
@@ -67,7 +68,11 @@ public class LogInServlet extends HttpServlet {
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} catch (custom_errors.LockoutException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, "User has exceeded allowable login attempts. Please contact the administrator.");
+		} 
 		
 		
 	}

@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import models.Books;
+import security.Security;
 import services.BooksService;
 
 /**
@@ -40,7 +41,7 @@ public class DeleteBookServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		//doGet(request, response);
-		int idBook = Integer.parseInt(request.getParameter(Books.COLUMN_IDBOOK));
+		int idBook = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
 		BooksService.deleteBook(idBook);
 		request.getRequestDispatcher("home").forward(request, response);
 	}

@@ -7,11 +7,9 @@ import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-
-import org.mindrot.jbcrypt.BCrypt;
-
-import models.User;
-import services.UserService;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
 
 public class Security {
 	
@@ -161,6 +159,9 @@ public class Security {
             return hex;
     }
 
-   
+   public static String sanitize(String unsanitized){
+	   PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
+	  return policy.sanitize(unsanitized);
+   }
 	
 }

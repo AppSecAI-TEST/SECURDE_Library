@@ -41,56 +41,7 @@
 
 	<jsp:include page="components/navbar.jsp" />
 
-	<div class="col-md-10 col-md-offset-1">
-		<div id="searchRooms" class="col-md-3">
-
-			<form id="searchForm" method="post" class="form-horizontal">
-				<!-- 
-				<div class="form-group col-md-12">
-					<label>Date</label>
-					<div>
-						<div class="input-group input-append date" id="datePicker">
-							<input type="text" class="form-control" name="date" /> <span
-								class="input-group-addon add-on"><span
-								class="glyphicon glyphicon-calendar"></span></span>
-						</div>
-					</div>
-				</div>
-				 -->
-				<div class="form-group col-md-12">
-					<label>Start Time (0600-2100)</label>
-					<div>
-						<input type="number" class="form-control" name="start" />
-					</div>
-				</div>
-				<div class="form-group col-md-12">
-					<label>End Time (0700-2200)</label>
-					<div>
-						<input type="number" class="form-control" name="end" />
-					</div>
-				</div>
-				<!-- 
-				<div class="form-group col-md-12">
-					<label>Floor</label>
-					<div>
-						<select class="selectpicker col-xs-12">
-							<option>All</option>
-							<option>7th Floor</option>
-							<option>8th Floor</option>
-							<option>9th Floor</option>
-							<option>10th Floor</option>
-							<option>11th Floor</option>
-							<option>12th Floor</option>
-						</select>
-					</div>
-				</div>
- -->
-				<button type="submit"
-					class="btn btn-success col-md-4 col-md-offset-4">Search</button>
-			</form>
-		</div>
-
-		<div id="results" class="col-md-8 clearfix">
+		<div id="results" class="col-md-10 col-md-offset-2 clearfix">
 			<div>
 				<h2>Room Reservation > Results</h2>
 				<div class="list-group">

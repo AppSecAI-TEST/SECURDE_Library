@@ -25,7 +25,7 @@
 		<div class="navbar-right" id="nav-buttons">
 
 			<%
-				if (request.getAttribute("loggedin")==null || -1 == (int) request.getAttribute("loggedin")) {
+				if (request.getAttribute("loggedin")==null || -1 >= (int) request.getAttribute("loggedin")) {
 			%>
 
 			<form action="login_page" method="post" id="nav_login"
