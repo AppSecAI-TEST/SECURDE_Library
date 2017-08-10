@@ -66,7 +66,7 @@
 					class="form-control" name="year" id="pubyear">
 			</div>
 			<div class="form-group">
-				<label for="location">Location:</label> <input type="number"
+				<label for="location">Location:</label> <input type="number" step="0.01"
 					class="form-control" placeholder="Enter in a Dewey decimal format. (e.g. 123.4)" name="location" id="loc">
 			</div>
 			

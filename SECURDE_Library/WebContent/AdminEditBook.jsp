@@ -82,6 +82,32 @@
 				</c:if>
 			</div>
 			<div class="form-group">
+				<label for="status">Status:</label> <br>
+				<c:if test="${show_book.status eq 0 }">
+					<select class="selectpicker" id="bookstatus" name="updated_status">
+						<option selected="selected">Available</option>
+						<option>Reserved</option>
+						<option>Out</option>
+					</select>
+				</c:if>
+
+				<c:if test="${show_book.status eq 1 }">
+					<select class="selectpicker" id="bookstatus" name="updated_status">
+						<option>Available</option>
+						<option selected="selected">Reserved</option>
+						<option>Out</option>
+					</select>
+				</c:if>
+
+				<c:if test="${show_book.status eq 2 }">
+					<select class="selectpicker" id="bookstatus" name="updated_status">
+						<option>Available</option>
+						<option>Reserved</option>
+						<option selected="selected">Out</option>
+					</select>
+				</c:if>
+			</div>
+			<div class="form-group">
 				<label for="name">Book Title</label> <input type="text"
 					value="${show_book.title}" class="form-control" id="booktitle"
 					name="updated_title" required />

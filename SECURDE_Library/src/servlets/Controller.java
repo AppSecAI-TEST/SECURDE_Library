@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import custom_errors.ExpireException;
 import custom_errors.PasswordMismatch;
 import models.BookReservation;
 import models.Books;
@@ -45,7 +46,11 @@ import services.UserService;
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
 		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
+<<<<<<< HEAD
 		"/temp_pass_change","/addreview", "/commentreview"
+=======
+		"/temp_pass_change", "/delete_reserve"
+>>>>>>> cdcd48e48c38db463a8e006653f322f6847c2056
 		})
 
 public class Controller extends HttpServlet {
@@ -164,7 +169,10 @@ public class Controller extends HttpServlet {
 						User u = UserService.getUserByID(id);
 						Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt() + ":" + id + "");
 						c.setMaxAge(60 * 60 * 1);
-
+						
+						user_info = "[" + u.getIdUser() + " | " + u.getAccesString() + "] " + u.getUserName();
+						
+						
 						response.addCookie(c);
 						response.sendRedirect("home");
 
@@ -181,6 +189,12 @@ public class Controller extends HttpServlet {
 					logger.warn("Locked out user : " + user_info + " attempted log in.");
 					response.sendError(HttpServletResponse.SC_FORBIDDEN,
 							"User has exceeded allowable login attempts. Please contact the administrator.");
+				} catch (ExpireException e) {
+					// TODO Auto-generated catch block
+					logger.warn(user_info + "'s temporary password has expired.");
+					response.sendError(HttpServletResponse.SC_FORBIDDEN,
+							"Temporary unlocking of user has expired. Please contact the administrator.");
+			
 				}
 
 			} else {
@@ -250,6 +264,7 @@ public class Controller extends HttpServlet {
 			request.getRequestDispatcher("BorrowBooks.jsp").forward(request, response);
 			break;
 		case "/addbookpage":
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 				request.getRequestDispatcher("AdminAddBook.jsp").forward(request, response);
 			} else {
@@ -258,6 +273,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/addbook":
+			String pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 				Books b = new Books();
 
@@ -296,8 +319,7 @@ public class Controller extends HttpServlet {
 
 					request.setAttribute(Books.COLUMN_IDBOOK, bookid);
 					booklogger.info("[" + bookid + "] " + b.getTitle() + " added by " + user_info);
-					request.getRequestDispatcher("book_detail").forward(request, response);
-
+					response.sendRedirect("search_book");
 				} catch (SQLException e) {
 					booklogger
 							.error("DATABASE FAILURE: " + user_info + " attempted to add book [" + b.getTitle() + "]");
@@ -310,6 +332,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/edit_book":
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
 				int id = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
@@ -330,6 +360,14 @@ public class Controller extends HttpServlet {
 			break;
 		// here
 		case "/update_book":
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
 				Books b = BooksService
@@ -351,6 +389,17 @@ public class Controller extends HttpServlet {
 					type1 = 2;
 				}
 				b.setType(type1);
+
+				String statusString = Security.sanitize(request.getParameter("updated_status"));
+				int status1 = 0;
+				if ("Available".equals(statusString)) {
+					status1 = 0;
+				} else if ("Reserved".equals(statusString)) {
+					status1 = 1;
+				} else if ("Out".equals(statusString)) {
+					status1 = 2;
+				}
+				b.setStatus(status1);
 
 				String[] taglist = Security.sanitize(request.getParameter("updated_tags")).split(",");
 
@@ -380,6 +429,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/delete_book":
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
 				int idBook = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
@@ -450,6 +507,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/unlock_users":
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 				try {
 					User lockedu = UserService
@@ -469,7 +534,14 @@ public class Controller extends HttpServlet {
 
 			break;
 		case "/add_admins":
-
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 
 				try {
@@ -559,9 +631,13 @@ public class Controller extends HttpServlet {
 					RoomsServices.getRoomById(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
 			request.setAttribute("roomslots", RoomSlotService
 					.getRoomSlotByRoom(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
+				request.setAttribute("override", true);
+				
 			request.getRequestDispatcher("RoomDetails.jsp").forward(request, response);
 			break;
 		case "/room_reserve":
+			
 			RoomSlot roomreserve = RoomSlotService
 					.getRoomSlotById(Integer.parseInt(Security.sanitize(request.getParameter("idRoomSlot"))));
 			RoomReservation roomreservation = new RoomReservation();
@@ -574,6 +650,7 @@ public class Controller extends HttpServlet {
 			roomreservation.setIdRoomReservation(rrid);
 			RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), RoomSlot.RESERVED);
 			break;
+<<<<<<< HEAD
 		case "/commentreview":
 			if(user != null){
 				request.setAttribute(Books.COLUMN_IDBOOK, request.getParameter(Books.COLUMN_IDBOOK));
@@ -582,6 +659,20 @@ public class Controller extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unathorized page access.");
 			}
 			break;
+=======
+
+		case "/delete_reserve":
+			
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+				roomreserve = RoomSlotService
+						.getRoomSlotById(Integer.parseInt(Security.sanitize(request.getParameter("idRoomSlot"))));
+				RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), RoomSlot.AVAILABLE);
+				request.getRequestDispatcher("ReservationDeletion.jsp").forward(request, response);
+			}
+				
+			break;
+
+>>>>>>> cdcd48e48c38db463a8e006653f322f6847c2056
 		case "/new_user":
 			// TODO Auto-generated method stub
 
