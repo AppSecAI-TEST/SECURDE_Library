@@ -14,6 +14,8 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.log4j.Logger;
+
 public class EmailUtil {
 
 	/**
@@ -22,7 +24,7 @@ public class EmailUtil {
 	   Use Authentication: Yes
 	   Port for SSL: 465
 	 */
-	
+	final static Logger logger = Logger.getLogger(EmailUtil.class);
 	final static String fromEmail = "email.dummy.tester@gmail.com"; //requires valid gmail id
 	final static String password = "EmailDummyTesting"; // correct password for gmail id
 	final static Session session;
@@ -75,7 +77,7 @@ public class EmailUtil {
 			msg.setText(body, "UTF-8");
 
 			msg.setSentDate(new Date());
-
+			logger.info("SENDING EMAIL TO "+toEmail);
 			msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail, false));
 			System.out.println("Message is ready");
 			Transport.send(msg);
