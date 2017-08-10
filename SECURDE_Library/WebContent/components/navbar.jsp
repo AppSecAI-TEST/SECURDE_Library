@@ -53,7 +53,7 @@
 			<form action="logout" method="post" id="nav_logout"
 				class="invisible"></form>
 
-			<form action="myacc_page" method="post" id="nav_myacc"
+			<form action="myaccount" method="post" id="nav_myacc"
 				class="invisible"></form>
 				
 			<script>
