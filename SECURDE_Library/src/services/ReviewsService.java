@@ -39,6 +39,20 @@ public class ReviewsService {
 		    java.sql.Date creation = new java.sql.Date(new Date().getTime());
 			pstmt.setDate(6,creation);
 			
+			pstmt.executeUpdate();
+
+			String sel ="SELECT "+Reviews.COLUMN_REVIEWID+" FROM "+ Reviews.TABLE_NAME+" WHERE "
+					+ Reviews.COLUMN_REVIEW + " =? AND "
+					+ Reviews.COLUMN_BOOKID + " =? AND "
+					+ Reviews.COLUMN_USERID + " =? AND "
+					+ Reviews.COLUMN_RATING	+ " =?";
+			
+			pstmt = conn.prepareStatement(sel);
+			pstmt.setInt(1, r.getIdBook());
+			pstmt.setInt(2, r.getIdUser());
+			pstmt.setString(3, r.getReview());
+			pstmt.setInt(4, r.getRating());
+			
 			ResultSet rs = pstmt.executeQuery();
 			while(rs.next()){
 				id = rs.getInt(Reviews.COLUMN_REVIEWID);

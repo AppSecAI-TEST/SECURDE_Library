@@ -42,12 +42,12 @@
 					</div>
 				</li>
 			</ul>
-			<form class="form-inline" role="form" action="addReview" method="post" id="add-review-form">
+			<form  action="addreview" method="post" id="add-review-form"  class="form-inline" role="form" >
 				<div class="form-group">
-					<input type="text" class="form-control" id="review" name="review"/>
-			
-					<button type="submit" class="btn btn-default">Add</button>
+					<input type="text" class="form-control" id="review" name="review">
+					<input type="text" class="invisible" name="idBooks" id="idBooks" value="${idBooks}"/>
 				</div>
+					<button type="submit" class="btn btn-default">Add</button>
 			</form>
 		</div>
 	</div>

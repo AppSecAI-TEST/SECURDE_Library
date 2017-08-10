@@ -99,8 +99,12 @@
 											</c:otherwise>
 									</c:choose>
 								</p>
+								<form action="commentreview" method="post">
+								<input type="text" value="${book.idBooks}" name="idBooks" class="invisible"/>
+								<input type="submit" value="Add Review"/>
 								
-								<a href="AddReviews.jsp">Add Review</a>
+								</form>
+
 							</div>
 						</div>
 					</div>
