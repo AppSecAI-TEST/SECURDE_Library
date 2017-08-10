@@ -30,6 +30,7 @@ public class User implements Serializable{
 	
 	public final static int STATUS_UNLOCKED = 0;
 	public final static int STATUS_LOCKED = 1;
+	public final static int STATUS_TEMP = 2;
 	
 	private String firstName, middleName, lastName;
 	private int idUser;

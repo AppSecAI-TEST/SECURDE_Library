@@ -1,6 +1,8 @@
 package services;
 
+import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,6 +12,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+
 import org.apache.log4j.Logger;
 
 import custom_errors.LockoutException;
@@ -17,6 +22,7 @@ import custom_errors.PasswordMismatch;
 import db.DBPool;
 import models.UnlockedUsers;
 import models.User;
+import security.EmailUtil;
 import security.Security;
 
 public class UserService {
@@ -138,6 +144,9 @@ public class UserService {
 			break;
 		case User.STATUS_UNLOCKED:
 			stat = "UNLOCKED";
+			break;
+		case User.STATUS_TEMP:
+			stat = "TEMP_PASSWORD_SENT";
 			break;
 			default:
 				stat = "UNKNOWN STAT VALUE [ "+status+ " ]";
@@ -321,6 +330,46 @@ public class UserService {
 		return u;
 	}
 	
+	public static User getUserByIDandUsername(int id, String username) {
+		User u = new User();
+		String sql = "Select * from " + User.TABLE_NAME + " WHERE " +
+		 User.COLUMN_IDNUM + " = ?" + " AND " + User.COLUMN_USERNAME + " =?;";
+
+		Connection conn = null;
+		DBPool.getInstance();
+		conn = DBPool.getConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String secret ="";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, id);
+			pstmt.setString(2, username);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				u.setIdUser(rs.getInt(User.COLUMN_IDNUM));
+				u.setEmail(rs.getString(User.COLUMN_EMAIL));
+				u.setSecretQuestion(rs.getString(User.COLUMN_SECRETQUESTION));
+				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
+				u.setUserName(rs.getString(User.COLUMN_USERNAME));
+			
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		return u;
+	}
+
 	public static void updatePassword(String password, String salt, int id) {
 		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? "  +" WHERE "
 				+ User.COLUMN_IDNUM + " =?;";
@@ -396,6 +445,7 @@ public class UserService {
 			ResultSet rs = pstmt.executeQuery();
 
 			while (rs.next()) {
+	
 				name = rs.getString(User.COLUMN_USERNAME);
 			}
 
@@ -475,15 +525,12 @@ public class UserService {
 
 		try {
 			pstmt = conn.prepareStatement(sql);
-			
-			if(status==1){
-				pstmt.setInt(1, 0);
-			}	
-			else{
-				pstmt.setInt(1, 1);
-				unlockUser(id);
-			}
-				
+	
+			System.out.println("STATUS " + status);
+			pstmt.setInt(1, status);
+					
+			System.out.println("STATUS2 " + status);
+
 			pstmt.executeUpdate();
 
 		} catch (SQLException e) {
@@ -541,6 +588,11 @@ public class UserService {
 		PreparedStatement pstmt = null;
 		User u = getUserByID(id);
 		attempt = u.getAttempt();
+		
+		if (attempt == 3) {
+			updateStatus(id, User.STATUS_LOCKED);
+		}
+		
 		try {
 			attempt++;
 
@@ -674,18 +726,39 @@ public class UserService {
 
 		
 	}
-	public static void unlockUser(int id){
+
+	
+	public static void unlockUser(int id) throws NoSuchAlgorithmException, InvalidKeySpecException, AddressException, UnsupportedEncodingException, MessagingException{
 		//some unlocking functions
 		String sql = "INSERT INTO "+UnlockedUsers.TABLE_NAME+" ("+UnlockedUsers.COLUMN_IDUSER+") VALUES (?);";
 
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
-
+		User u = getUserByID(id);
 		PreparedStatement pstmt = null;
 
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, id);
+			pstmt.executeUpdate();
+			
+			updateStatus(id,User.STATUS_TEMP);
+			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? " + " WHERE "
+					+ User.COLUMN_IDNUM + " =?;";
+
+			byte[] bytes = new byte[16];
+			new SecureRandom().nextBytes(bytes);
+			
+			String newP = new String(bytes);
+			String newpass = Security.createHash(newP);
+			
+			String body = "You have been given a temporary password "+newP+" please change it immediately upon login or your account will expire.";
+			
+			EmailUtil.sendEmail(u.getEmail(), "[SHS Library]", body);
+			
+			pstmt = conn.prepareStatement(sel);
+			pstmt.setString(1,newpass);
+			pstmt.setInt(2, id);
 			pstmt.executeUpdate();
 
 			logger.info("Unlocking "+"["+id+"]"+getUserNameById(id));
@@ -704,6 +777,40 @@ public class UserService {
 
 	}
 	
+	public static boolean validateQuestionAndAnswer(int id, String username, String answer) throws PasswordMismatch, AddressException, UnsupportedEncodingException, MessagingException{
+		
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+		String actual_ans; 
+		PreparedStatement pstmt = null;
+		User u = getUserByIDandUsername(id, username);
+		actual_ans = u.getSecretAnswer();
+		boolean match = false;
+
+		try {
+			if(Security.validatePassword(answer, actual_ans)){	
+				unlockUser(id);	
+				match= true;
+			}else{
+				throw new PasswordMismatch();
+			}
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		return match;
+	}
 	
 	public static boolean validateUser(User u){
 		
@@ -713,6 +820,8 @@ public class UserService {
 		
 		return true;
 	}
+
+	
 
 	
 }

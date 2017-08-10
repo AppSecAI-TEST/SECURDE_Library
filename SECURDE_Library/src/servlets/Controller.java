@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
@@ -16,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import custom_errors.PasswordMismatch;
 import models.BookReservation;
 import models.Books;
 import models.RoomReservation;
@@ -38,7 +42,9 @@ import services.UserService;
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
-		"/change_pass", "/unlock_users_page", "/unlock_users" })
+		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
+		"/temp_pass_change"
+		})
 
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -81,6 +87,12 @@ public class Controller extends HttpServlet {
 			user_info = "[" + user.getIdUser() + " | " + user.getAccesString() + "] " + user.getUserName();
 		}
 
+		if("/temp_pass_change".equals(servletPath)) {
+			request.getRequestDispatcher("MyAccount.jsp").forward(request, response);
+		}else if(user!=null && user.getStatus() == User.STATUS_TEMP) {
+			response.sendRedirect("temp_pass_change");
+		}
+		
 		switch (servletPath) {
 
 		case "/logout":
@@ -384,6 +396,46 @@ public class Controller extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 			}
 			break;
+		case "/secret_question":
+			int id = Integer.parseInt(Security.sanitize(request.getParameter("userid")));
+			String username = Security.sanitize(request.getParameter("username"));
+			User u = new User();
+			u = UserService.getUserByIDandUsername(id, username);
+			if (u!=null) {
+				request.setAttribute("forgottenuser", u);
+				request.getRequestDispatcher("SecretQuestion.jsp").forward(request, response);
+			} else {
+				request.getRequestDispatcher("SecretQuestionFail.jsp").forward(request, response);
+			}
+			break;
+		case "/answer_question":
+			String ans = Security.sanitize(request.getParameter("secretanswer"));
+			int idu = Integer.parseInt(request.getParameter("idUser"));
+			String name = request.getParameter("userName");
+			try {
+				UserService.validateQuestionAndAnswer(idu, name, ans); 
+				request.getRequestDispatcher("SecretQuestionSuccess.jsp").forward(request, response);
+
+			} catch (PasswordMismatch e1) {
+				System.out.println("PASSWORD MISMATCH");
+				request.getRequestDispatcher("SecretQuestionFail.jsp").forward(request, response);
+				
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (AddressException e) {
+				System.out.println("ADDRESS UNKNOWN");
+				request.getRequestDispatcher("SecretQuestionFailedSend.jsp").forward(request, response);
+				e.printStackTrace();
+			} catch (MessagingException e) {
+				System.out.println("SEND FAILED");
+				request.getRequestDispatcher("SecretQuestionFailedSend.jsp").forward(request, response);
+				e.printStackTrace();
+			}
+			break;
+		case "/forget_password_page":
+			request.getRequestDispatcher("ForgotPassword.jsp").forward(request, response);
+			break;
+		
 		case "/unlock_users_page":
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 
@@ -399,7 +451,8 @@ public class Controller extends HttpServlet {
 				try {
 					User lockedu = UserService
 							.getUserByID(Integer.parseInt(Security.sanitize(request.getParameter("idUser"))));
-					UserService.updateStatus(lockedu.getIdUser(), lockedu.getStatus());
+					UserService.updateStatus(lockedu.getIdUser(), User.STATUS_UNLOCKED);
+					
 					request.getRequestDispatcher("UnlockedUsersSuccess.jsp").forward(request, response);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -418,13 +471,13 @@ public class Controller extends HttpServlet {
 
 				try {
 
-					User u = new User();
+					User u2 = new User();
 
-					u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
-					u.setEmail(request.getParameter("email"));
-					u.setFirstName(Security.sanitize(request.getParameter("firstname")));
-					u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
-					u.setLastName(Security.sanitize(request.getParameter("lastname")));
+					u2.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+					u2.setEmail(request.getParameter("email"));
+					u2.setFirstName(Security.sanitize(request.getParameter("firstname")));
+					u2.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+					u2.setLastName(Security.sanitize(request.getParameter("lastname")));
 					int access = User.STUDENT;
 					String accessString = Security.sanitize(request.getParameter("access_level"));
 					switch (accessString) {
@@ -442,27 +495,27 @@ public class Controller extends HttpServlet {
 						access = User.STUDENT;
 					}
 
-					u.setAccessLevel(access);
+					u2.setAccessLevel(access);
 					String birthdate = Security.sanitize(request.getParameter("birthdate"));
 					String[] dates = birthdate.split("/");
 					int month = Integer.parseInt(dates[0]);
 					int day = Integer.parseInt(dates[1]);
 					int year = Integer.parseInt(dates[2]);
-					u.setBirthdate(new GregorianCalendar(year, month, day));
-					u.setCreateTime(new GregorianCalendar());
-					u.setLastLogin(new GregorianCalendar());
-					u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
+					u2.setBirthdate(new GregorianCalendar(year, month, day));
+					u2.setCreateTime(new GregorianCalendar());
+					u2.setLastLogin(new GregorianCalendar());
+					u2.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
 					String unAnswer = request.getParameter("secret_answer");
-					u.setSecretAnswer(Security.createHash(unAnswer));
-					u.setUserName(Security.sanitize(request.getParameter("username")));
+					u2.setSecretAnswer(Security.createHash(unAnswer));
+					u2.setUserName(Security.sanitize(request.getParameter("username")));
 
 					String unhashed = request.getParameter("password");
 
-					u.setPassword(Security.createHash(unhashed));
+					u2.setPassword(Security.createHash(unhashed));
 
-					if (UserService.validateUser(u)) {
-						UserService.addUser(u);
-						UserService.unlockUser(u.getIdUser());
+					if (UserService.validateUser(u2)) {
+						UserService.addUser(u2);
+						UserService.unlockUser(u2.getIdUser());
 						response.sendRedirect("home");
 					} else {
 						response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
@@ -524,37 +577,37 @@ public class Controller extends HttpServlet {
 
 			try {
 
-				User u = new User();
+				User u1 = new User();
 
-				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
-				u.setEmail(request.getParameter("email"));
-				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
-				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
-				u.setLastName(Security.sanitize(request.getParameter("lastname")));
+				u1.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+				u1.setEmail(request.getParameter("email"));
+				u1.setFirstName(Security.sanitize(request.getParameter("firstname")));
+				u1.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+				u1.setLastName(Security.sanitize(request.getParameter("lastname")));
 				int access = 0;
 				String accessString = Security.sanitize(request.getParameter("access_level"));
 				if ("Faculty".equals(accessString)) {
 					access = 1;
 				}
-				u.setAccessLevel(access);
+				u1.setAccessLevel(access);
 				String birthdate = Security.sanitize(Security.sanitize(request.getParameter("birthdate")));
 				String[] dates = birthdate.split("/");
 				int month = Integer.parseInt(dates[0]);
 				int day = Integer.parseInt(dates[1]);
 				int year = Integer.parseInt(dates[2]);
-				u.setBirthdate(new GregorianCalendar(year, month, day));
-				u.setCreateTime(new GregorianCalendar());
-				u.setLastLogin(new GregorianCalendar());
-				u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
+				u1.setBirthdate(new GregorianCalendar(year, month, day));
+				u1.setCreateTime(new GregorianCalendar());
+				u1.setLastLogin(new GregorianCalendar());
+				u1.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
 				String unAnswer = request.getParameter("secret_answer");
-				u.setSecretAnswer(Security.createHash(unAnswer));
-				u.setUserName(Security.sanitize(request.getParameter("username")));
+				u1.setSecretAnswer(Security.createHash(unAnswer));
+				u1.setUserName(Security.sanitize(request.getParameter("username")));
 
 				String unhashed = request.getParameter("password");
 
-				u.setPassword(Security.createHash(unhashed));
-				if (UserService.validateUser(u)) {
-					UserService.addUser(u);
+				u1.setPassword(Security.createHash(unhashed));
+				if (UserService.validateUser(u1)) {
+					UserService.addUser(u1);
 					response.sendRedirect("home");
 				} else {
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
@@ -578,9 +631,9 @@ public class Controller extends HttpServlet {
 				if (user != null) {
 					String oldpass = request.getParameter("oldpassword");
 					String newpass = request.getParameter("newpassword");
-					int id = user.getIdUser();
+					int iduser = user.getIdUser();
 
-					UserService.changePassword(oldpass, newpass, id);
+					UserService.changePassword(oldpass, newpass, iduser);
 					request.getRequestDispatcher("PasswordSuccess.jsp").forward(request, response);
 
 				} else {
