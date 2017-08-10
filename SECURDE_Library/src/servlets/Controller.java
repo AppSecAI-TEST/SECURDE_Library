@@ -4,19 +4,14 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
 import models.BookReservation;
 import models.Books;
@@ -38,7 +33,8 @@ import services.UserService;
  * Servlet implementation class Controller
  */
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
-		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user", "/search_book" })
+		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve",
+		"/new_user", "/search_book","/delete_book", "/update_book", "/login" })
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -72,11 +68,49 @@ public class Controller extends HttpServlet {
 		case "/login_page":
 			request.getRequestDispatcher("LogIn.jsp").forward(request, response);
 			break;
+		case "/login":
+			if(user == null) {
 
+				String username = Security.sanitize(request.getParameter("username"));
+				String password = request.getParameter("password");
+				
+				int id;
+				try {
+					id = UserService.logInUser(username, password);
+
+					if(id != -1){
+						request.setAttribute("loggedin", id);
+						User u = UserService.getUserByID(id);
+						System.out.println(request.getAttribute("loggedin"));
+						Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt()+":"+id+"");
+						c.setMaxAge(60*60*1);
+						
+						response.addCookie(c);
+						response.sendRedirect("home");
+						
+					}
+					else{
+						request.setAttribute("loggedin", -10);
+						request.getRequestDispatcher("LogIn.jsp").forward(request, response);
+					}
+					
+				} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (custom_errors.LockoutException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_FORBIDDEN, "User has exceeded allowable login attempts. Please contact the administrator.");
+				} 
+				
+			}else {
+				response.sendRedirect("home");
+			}
+			break;
 		case "/book_detail":
 			Books bookdetail = BooksService.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
 			request.setAttribute("book", bookdetail);
-			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3))
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
 				request.setAttribute("editable", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
 			break;
@@ -113,14 +147,14 @@ public class Controller extends HttpServlet {
 			request.getRequestDispatcher("BorrowBooks.jsp").forward(request, response);
 			break;
 		case "/addbookpage":
-			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)) {
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 				request.getRequestDispatcher("AdminAddBook.jsp").forward(request, response);
 			} else {
-				response.sendRedirect("home");
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 			}
 			break;
 		case "/addbook":
-			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)) {
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 				Books b = new Books();
 
 				b.setTitle(Security.sanitize(request.getParameter("book_title")));
@@ -131,14 +165,14 @@ public class Controller extends HttpServlet {
 				b.setStatus(0);
 				b.setCreateTime(new GregorianCalendar());
 				String typeString = Security.sanitize(request.getParameter("type"));
-				int type1 = 0;
+				int type1 = Books.UNKNOWN;
 
 				if ("Book".equals(typeString)) {
-					type1 = 0;
+					type1 = Books.BOOK;
 				} else if ("Magazine".equals(typeString)) {
-					type1 = 1;
+					type1 = Books.MAGAZINE;
 				} else if ("Thesis".equals(typeString)) {
-					type1 = 2;
+					type1 = Books.THESIS;
 				}
 				b.setType(type1);
 
@@ -161,7 +195,7 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/edit_book":
-			if (user != null && (user.getAccessLevel() == 2 || user.getAccessLevel() == 3)) {
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
 				int id = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
 				Books b = BooksService.getBookById(id);
@@ -172,20 +206,75 @@ public class Controller extends HttpServlet {
 
 				request.getRequestDispatcher("AdminEditBook.jsp").forward(request, response);
 			} else {
-				response.sendRedirect("home");
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 
 			}
 			break;
+		case "/update_book":
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+
+				Books b = BooksService.getBookById(Integer.parseInt(Security.sanitize(request.getParameter("idBooks"))));
+				b.setTitle			(Security.sanitize(request.getParameter("updated_title")));
+				b.setAuthor			(Security.sanitize(request.getParameter("updated_author")));
+				b.setPublisher		(Security.sanitize(request.getParameter("updated_publisher")));
+				b.setYear			(Integer.parseInt(Security.sanitize(request.getParameter("updated_year"))));
+				b.setLocation		(Double.parseDouble(Security.sanitize(request.getParameter("updated_location"))));
+				b.setStatus(0);
+				
+				String typeString = Security.sanitize(request.getParameter("updated_type"));
+				int type1 = 0;
+				if("Book".equals(typeString)){
+					type1 = 0;
+				}
+				else if("Magazine".equals(typeString)){
+					type1 = 1;
+				}
+				else if("Thesis".equals(typeString)){
+					type1 = 2;
+				}
+				b.setType(type1);
+				
+				
+				String[] taglist = Security.sanitize(request.getParameter("updated_tags")).split(",");
+				
+				for(int i=0; i<taglist.length; i++){
+					Tags t = new Tags();
+					t.setTag(taglist[i]);
+					TagsService tagsservice = new TagsService();
+					tagsservice.addTag(t);
+				}
+				
+				BooksService.updateBook(b);
+				
+				response.sendRedirect("home");
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+
+			}			
+			break;
+		case "/delete_book":
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+
+				int idBook = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
+				BooksService.deleteBook(idBook);
+				request.getRequestDispatcher("home").forward(request, response);
+
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+
+			}
+			break;
+		
 		case "/add_admins_page":
-			if (user != null && (user.getAccessLevel() == 5)) {
+			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 				request.getRequestDispatcher("AdminAccountCreation.jsp").forward(request, response);
 			} else {
-				response.sendRedirect("home");
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 			}
 			break;
 		case "/add_admins":
 			
-			if (user != null && (user.getAccessLevel() == 5)) {
+			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 
 				try {
 				User u = new User();
@@ -195,20 +284,18 @@ public class Controller extends HttpServlet {
 				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
 				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
 				u.setLastName(Security.sanitize(request.getParameter("lastname")));
-				int access = 0;
+				int access = User.STUDENT;
 				String accessString = Security.sanitize(request.getParameter("access_level"));
 				switch (accessString) {
 				case "Library Manager":
-					access = 3;
+					access = User.MANAGER;
 					break;
 				case "Library Staff":
-					access = 4;
+					access = User.STAFF;
 					break;
 				case "Library Student Assistant":
-					access = 0;
-					break;
 				default:
-					access = 0;
+					access = User.STUDENT;
 				}
 
 				u.setAccessLevel(access);
@@ -250,7 +337,7 @@ public class Controller extends HttpServlet {
 
 
 			} else {
-				response.sendRedirect("home");
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 			}
 			break;
 		case "/search_room":
