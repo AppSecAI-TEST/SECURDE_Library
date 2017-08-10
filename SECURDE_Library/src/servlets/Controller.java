@@ -89,12 +89,15 @@ public class Controller extends HttpServlet {
 
 		if("/temp_pass_change".equals(servletPath)) {
 			request.getRequestDispatcher("MyAccount.jsp").forward(request, response);
-		}else if(user!=null && user.getStatus() == User.STATUS_TEMP) {
+		}else if(user!=null && user.getStatus() == User.STATUS_TEMP
+					&& !"/change_pass".equals(servletPath) && !"/logout".equals(servletPath)) {
 			response.sendRedirect("temp_pass_change");
+			return;
 		}
 		
 		switch (servletPath) {
-
+		case "/temp_pass_change":
+			break;
 		case "/logout":
 			if (user != null) {
 
@@ -173,7 +176,6 @@ public class Controller extends HttpServlet {
 					e.printStackTrace();
 				} catch (custom_errors.LockoutException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
 					logger.warn("Locked out user : " + user_info + " attempted log in.");
 					response.sendError(HttpServletResponse.SC_FORBIDDEN,
 							"User has exceeded allowable login attempts. Please contact the administrator.");
@@ -189,6 +191,7 @@ public class Controller extends HttpServlet {
 			request.setAttribute("book", bookdetail);
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
 				request.setAttribute("editable", true);
+				request.setAttribute("dropdown", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
 			break;
 
@@ -293,8 +296,7 @@ public class Controller extends HttpServlet {
 
 					request.setAttribute(Books.COLUMN_IDBOOK, bookid);
 					booklogger.info("[" + bookid + "] " + b.getTitle() + " added by " + user_info);
-					request.getRequestDispatcher("book_detail").forward(request, response);
-
+					response.sendRedirect("search_book");
 				} catch (SQLException e) {
 					booklogger
 							.error("DATABASE FAILURE: " + user_info + " attempted to add book [" + b.getTitle() + "]");
@@ -451,7 +453,7 @@ public class Controller extends HttpServlet {
 				try {
 					User lockedu = UserService
 							.getUserByID(Integer.parseInt(Security.sanitize(request.getParameter("idUser"))));
-					UserService.updateStatus(lockedu.getIdUser(), User.STATUS_UNLOCKED);
+					UserService.unlockUser(lockedu.getIdUser());
 					
 					request.getRequestDispatcher("UnlockedUsersSuccess.jsp").forward(request, response);
 				} catch (Exception e) {
@@ -635,8 +637,9 @@ public class Controller extends HttpServlet {
 
 					UserService.changePassword(oldpass, newpass, iduser);
 					request.getRequestDispatcher("PasswordSuccess.jsp").forward(request, response);
-
+					System.out.println("PASSWORD CHANGED");
 				} else {
+					System.out.println("PASSWORD CHANGED");
 					response.sendRedirect("home");
 				}
 

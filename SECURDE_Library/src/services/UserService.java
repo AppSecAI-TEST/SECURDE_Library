@@ -15,6 +15,7 @@ import java.util.GregorianCalendar;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 
 import custom_errors.LockoutException;
@@ -28,16 +29,17 @@ import security.Security;
 public class UserService {
 
 	final static Logger logger = Logger.getLogger(UserService.class);
-	
+
 	public static void addUser(User u) throws SQLException {
-		
+
 		logger.info(u.getUserName() + "attempting to sign up.");
-		
+
 		String sql = "INSERT INTO " + User.TABLE_NAME + " (" + User.COLUMN_IDNUM + ", " + User.COLUMN_EMAIL + ", "
 				+ User.COLUMN_FIRSTNAME + ", " + User.COLUMN_MIDDLENAME + ", " + User.COLUMN_LASTNAME + ", "
 				+ User.COLUMN_USERNAME + ", " + User.COLUMN_BIRTHDATE + ", " + User.COLUMN_SECRETQUESTION + ", "
 				+ User.COLUMN_SECRETANSWER + ", " + User.COLUMN_CREATETIME + ", " + User.COLUMN_LASTLOGIN + ", "
-				+ User.COLUMN_ACCESSLEVEL + ", "+ User.COLUMN_ATTEMPT + ", " + User.COLUMN_PASS + ") " + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+				+ User.COLUMN_ACCESSLEVEL + ", " + User.COLUMN_ATTEMPT + ", " + User.COLUMN_PASS + ") "
+				+ " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
 
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -63,7 +65,7 @@ public class UserService {
 			pstmt.setInt(12, u.getAccessLevel());
 			pstmt.setInt(13, 0);
 			pstmt.setString(14, u.getPassword());
-			
+
 			pstmt.executeUpdate();
 
 		} finally {
@@ -123,7 +125,7 @@ public class UserService {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally{
+		} finally {
 			try {
 				pstmt.close();
 				conn.close();
@@ -138,7 +140,7 @@ public class UserService {
 
 	public static ArrayList<User> getAllUsersByStatus(int status) {
 		String stat;
-		switch(status) {
+		switch (status) {
 		case User.STATUS_LOCKED:
 			stat = "LOCKED";
 			break;
@@ -148,12 +150,12 @@ public class UserService {
 		case User.STATUS_TEMP:
 			stat = "TEMP_PASSWORD_SENT";
 			break;
-			default:
-				stat = "UNKNOWN STAT VALUE [ "+status+ " ]";
-			
+		default:
+			stat = "UNKNOWN STAT VALUE [ " + status + " ]";
+
 		}
-		
-		logger.info("Retrieving users with status : " +stat);
+
+		logger.info("Retrieving users with status : " + stat);
 		ArrayList<User> users = new ArrayList<User>();
 
 		String sql = "Select * from " + User.TABLE_NAME + " WHERE " + User.COLUMN_STATUS + " = ?;";
@@ -201,8 +203,7 @@ public class UserService {
 
 		return users;
 	}
-	
-	
+
 	public static ArrayList<User> getUsersByID(ArrayList<Integer> idNum) {
 		ArrayList<User> users = new ArrayList<User>();
 
@@ -256,7 +257,7 @@ public class UserService {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally{
+		} finally {
 			try {
 				pstmt.close();
 				conn.close();
@@ -317,7 +318,7 @@ public class UserService {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally{
+		} finally {
 			try {
 				pstmt.close();
 				conn.close();
@@ -329,18 +330,18 @@ public class UserService {
 
 		return u;
 	}
-	
+
 	public static User getUserByIDandUsername(int id, String username) {
 		User u = new User();
-		String sql = "Select * from " + User.TABLE_NAME + " WHERE " +
-		 User.COLUMN_IDNUM + " = ?" + " AND " + User.COLUMN_USERNAME + " =?;";
+		String sql = "Select * from " + User.TABLE_NAME + " WHERE " + User.COLUMN_IDNUM + " = ?" + " AND "
+				+ User.COLUMN_USERNAME + " =?;";
 
 		Connection conn = null;
 		DBPool.getInstance();
 		conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		String secret ="";
+		String secret = "";
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, id);
@@ -352,12 +353,11 @@ public class UserService {
 				u.setSecretQuestion(rs.getString(User.COLUMN_SECRETQUESTION));
 				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
 				u.setUserName(rs.getString(User.COLUMN_USERNAME));
-			
 
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally{
+		} finally {
 			try {
 				pstmt.close();
 				conn.close();
@@ -371,8 +371,8 @@ public class UserService {
 	}
 
 	public static void updatePassword(String password, String salt, int id) {
-		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? "  +" WHERE "
-				+ User.COLUMN_IDNUM + " =?;";
+		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? " + " WHERE " + User.COLUMN_IDNUM
+				+ " =?;";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 
@@ -399,15 +399,16 @@ public class UserService {
 		}
 
 	}
+
 	public static void deleteUser(String idNum) {
 		User u = getUserByID(Integer.parseInt(idNum));
-		
-		if(u==null) {
+
+		if (u == null) {
 			u = new User();
 		}
-		
-		logger.info("Deleting "+u.getAccesString()+" ["+idNum+"] "+u.getUserName());
-		
+
+		logger.info("Deleting " + u.getAccesString() + " [" + idNum + "] " + u.getUserName());
+
 		String sql = "DELETE FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_IDNUM + " = ?;";
 
 		DBPool.getInstance();
@@ -445,7 +446,7 @@ public class UserService {
 			ResultSet rs = pstmt.executeQuery();
 
 			while (rs.next()) {
-	
+
 				name = rs.getString(User.COLUMN_USERNAME);
 			}
 
@@ -466,20 +467,19 @@ public class UserService {
 
 	}
 
-	
 	public static void updateLockedStatus(int id) {
-		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_STATUS + " =? " + " WHERE "
-				+ User.COLUMN_IDNUM + " =?;";
+		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_STATUS + " =? " + " WHERE " + User.COLUMN_IDNUM
+				+ " =?;";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 
 		PreparedStatement pstmt = null;
-		
-		logger.info("Locking user ["+id+"] "+getUserNameById(id));
-		
+
+		logger.info("Locking user [" + id + "] " + getUserNameById(id));
+
 		try {
 			pstmt = conn.prepareStatement(sql);
-			
+
 			pstmt.setInt(1, 1);
 			pstmt.setInt(2, id);
 			pstmt.executeUpdate();
@@ -498,37 +498,36 @@ public class UserService {
 		}
 
 	}
-	
+
 	public static void updateStatus(int id, int status) {
-		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_STATUS + " =? " + " WHERE "
-				+ User.COLUMN_IDNUM + " =" + id + ";";
+		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_STATUS + " =? " + " WHERE " + User.COLUMN_IDNUM
+				+ " =" + id + ";";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		String stat;
-		switch(status) {
+		switch (status) {
 		case User.STATUS_LOCKED:
 			stat = "Locking";
-			logger.info(stat+" user ["+id+"] "+getUserNameById(id));
+			logger.info(stat + " user [" + id + "] " + getUserNameById(id));
 			break;
 		case User.STATUS_UNLOCKED:
 			stat = "Unlocking";
-			logger.info(stat+" user ["+id+"] "+getUserNameById(id));
+			logger.info(stat + " user [" + id + "] " + getUserNameById(id));
 			break;
-			default:
-				stat = "UNKNOWN STATUS CHANGE [ "+status+ " ] to";
-				logger.warn(stat+" user ["+id+"] "+getUserNameById(id));
-			
+		default:
+			stat = "UNKNOWN STATUS CHANGE [ " + status + " ] to";
+			logger.warn(stat + " user [" + id + "] " + getUserNameById(id));
+
 		}
-		
-		
+
 		PreparedStatement pstmt = null;
 
 		try {
 			pstmt = conn.prepareStatement(sql);
-	
+
 			System.out.println("STATUS " + status);
 			pstmt.setInt(1, status);
-					
+
 			System.out.println("STATUS2 " + status);
 
 			pstmt.executeUpdate();
@@ -549,13 +548,13 @@ public class UserService {
 	}
 
 	public static void updateLogIn(int id) {
-		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_LASTLOGIN + " =? " + " , " +  User.COLUMN_ATTEMPT + " =? "+ " WHERE "
-				+ User.COLUMN_IDNUM + " =" + id + ";";
+		String sql = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_LASTLOGIN + " =? " + " , "
+				+ User.COLUMN_ATTEMPT + " =? " + " WHERE " + User.COLUMN_IDNUM + " =" + id + ";";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
-		
-		logger.info("["+id+"] "+getUserNameById(id)+" successfully logged in.");
-		
+
+		logger.info("[" + id + "] " + getUserNameById(id) + " successfully logged in.");
+
 		PreparedStatement pstmt = null;
 
 		try {
@@ -580,32 +579,32 @@ public class UserService {
 		}
 
 	}
-	
+
 	public static void updateAttempt(int id) {
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
-		int attempt=0;
+		int attempt = 0;
 		PreparedStatement pstmt = null;
 		User u = getUserByID(id);
 		attempt = u.getAttempt();
-		
+
 		if (attempt == 3) {
 			updateStatus(id, User.STATUS_LOCKED);
 		}
-		
+
 		try {
 			attempt++;
 
-			logger.warn("["+id+"] "+getUserNameById(id)+ " Failed login attempt. Attempt #"+attempt);
-			
+			logger.warn("[" + id + "] " + getUserNameById(id) + " Failed login attempt. Attempt #" + attempt);
+
 			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_ATTEMPT + " =? " + " WHERE "
 					+ User.COLUMN_IDNUM + " =?;";
-			
+
 			pstmt = conn.prepareStatement(sel);
-			pstmt.setInt(1,attempt);
+			pstmt.setInt(1, attempt);
 			pstmt.setInt(2, id);
 			pstmt.executeUpdate();
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -621,11 +620,12 @@ public class UserService {
 
 	}
 
-
-	public static int logInUser(String username, String password) throws  InvalidKeySpecException, NoSuchAlgorithmException, LockoutException {
-		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_USERNAME +" =?";
+	public static int logInUser(String username, String password)
+			throws InvalidKeySpecException, NoSuchAlgorithmException, LockoutException {
+		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_USERNAME
+				+ " =?";
 		int id = -1;
-		
+
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
@@ -653,57 +653,54 @@ public class UserService {
 
 		if (id != -1) {
 
-
-			logger.info("["+id+"] "+username+" attempting to log in.");
+			logger.info("[" + id + "] " + username + " attempting to log in.");
 			User u = getUserByID(id);
-			
-			if(u.getAttempt() < 3){
-			
-			if(Security.validatePassword(password, u.getPassword())){		
-				updateLogIn(id);
-				return id;
-			}else{
-				updateAttempt(id);
-				return -1;
-			}
-			}else{
+			System.out.println(u.getStatus());
+			if (u.getStatus() != User.STATUS_LOCKED) {
 
-				logger.info("["+id+"]"+username+" is locked out.");
+				if (Security.validatePassword(password, u.getPassword())) {
+					updateLogIn(id);
+					return id;
+				} else {
+					updateAttempt(id);
+					return -1;
+				}
+			} else {
+
+				logger.info("[" + id + "] " + username + " is locked out.");
 				throw new LockoutException();
-				
-			}
-		}else {
 
+			}
+		} else {
 
 			logger.info("Unregistered user attempting to log in.");
 		}
 
 		return id;
 	}
-	
-	public static void changePassword(String oldpass, String newpass, int id) throws PasswordMismatch{
-		
+
+	public static void changePassword(String oldpass, String newpass, int id) throws PasswordMismatch {
+
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
-		String old; 
+		String old;
 		PreparedStatement pstmt = null;
 		User u = getUserByID(id);
 		old = u.getPassword();
-		
-		
-		
+
 		try {
-			if(Security.validatePassword(oldpass, old)){	
-				String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? " + " WHERE "
-						+ User.COLUMN_IDNUM + " =?;";
-				
+			if (Security.validatePassword(oldpass, old)) {
+				String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? " + " , "+ User.COLUMN_STATUS + " =? "
+						+ " WHERE " + User.COLUMN_IDNUM + " =?;";
+
 				newpass = Security.createHash(newpass);
-				
+
 				pstmt = conn.prepareStatement(sel);
-				pstmt.setString(1,newpass);
-				pstmt.setInt(2, id);
+				pstmt.setString(1, newpass);
+				pstmt.setInt(2, User.STATUS_UNLOCKED);
+				pstmt.setInt(3, id);
 				pstmt.executeUpdate();
-			}else{
+			} else {
 				throw new PasswordMismatch();
 			}
 		} catch (SQLException e) {
@@ -724,13 +721,38 @@ public class UserService {
 			}
 		}
 
-		
 	}
-
 	
-	public static void unlockUser(int id) throws NoSuchAlgorithmException, InvalidKeySpecException, AddressException, UnsupportedEncodingException, MessagingException{
-		//some unlocking functions
-		String sql = "INSERT INTO "+UnlockedUsers.TABLE_NAME+" ("+UnlockedUsers.COLUMN_IDUSER+") VALUES (?);";
+	public static void updatePwStatus(int id) {
+		String sql = "UPDATE " + UnlockedUsers.TABLE_NAME + " SET " + UnlockedUsers.COLUMN_PWSTATUS + " =? " + " WHERE " + UnlockedUsers.COLUMN_IDUSER
+				+ " =?;";
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+		PreparedStatement pstmt = null;
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, 1);
+			pstmt.setInt(2, id);
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	public static void unlockUser(int id) throws NoSuchAlgorithmException, InvalidKeySpecException, AddressException,
+			UnsupportedEncodingException, MessagingException {
+		// some unlocking functions
+		String sql = "INSERT INTO " + UnlockedUsers.TABLE_NAME + " (" + UnlockedUsers.COLUMN_IDUSER + ") VALUES (?);";
 
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -741,27 +763,27 @@ public class UserService {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, id);
 			pstmt.executeUpdate();
-			
-			updateStatus(id,User.STATUS_TEMP);
+
+			updateStatus(id, User.STATUS_TEMP);
 			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? " + " WHERE "
 					+ User.COLUMN_IDNUM + " =?;";
 
-			byte[] bytes = new byte[16];
-			new SecureRandom().nextBytes(bytes);
+			char[] possibleCharacters = (new String("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^&*()-_=+[{]}\\|;:\'\",<.>/?")).toCharArray();
+			String newP = RandomStringUtils.random( 16, 0, possibleCharacters.length-1, false, false, possibleCharacters, new SecureRandom() );
 			
-			String newP = new String(bytes);
 			String newpass = Security.createHash(newP);
-			
-			String body = "You have been given a temporary password "+newP+" please change it immediately upon login or your account will expire.";
-			
+
+			String body = "You have been given a temporary password " + newP
+					+ " please change it immediately upon login or your account will expire.";
+
 			EmailUtil.sendEmail(u.getEmail(), "[SHS Library]", body);
-			
+
 			pstmt = conn.prepareStatement(sel);
-			pstmt.setString(1,newpass);
+			pstmt.setString(1, newpass);
 			pstmt.setInt(2, id);
 			pstmt.executeUpdate();
 
-			logger.info("Unlocking "+"["+id+"]"+getUserNameById(id));
+			logger.info("Unlocking " + "[" + id + "]" + getUserNameById(id));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -776,22 +798,23 @@ public class UserService {
 		}
 
 	}
-	
-	public static boolean validateQuestionAndAnswer(int id, String username, String answer) throws PasswordMismatch, AddressException, UnsupportedEncodingException, MessagingException{
-		
+
+	public static boolean validateQuestionAndAnswer(int id, String username, String answer)
+			throws PasswordMismatch, AddressException, UnsupportedEncodingException, MessagingException {
+
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
-		String actual_ans; 
+		String actual_ans;
 		PreparedStatement pstmt = null;
 		User u = getUserByIDandUsername(id, username);
 		actual_ans = u.getSecretAnswer();
 		boolean match = false;
 
 		try {
-			if(Security.validatePassword(answer, actual_ans)){	
-				unlockUser(id);	
-				match= true;
-			}else{
+			if (Security.validatePassword(answer, actual_ans)) {
+				unlockUser(id);
+				match = true;
+			} else {
 				throw new PasswordMismatch();
 			}
 		} catch (NoSuchAlgorithmException e) {
@@ -811,17 +834,15 @@ public class UserService {
 
 		return match;
 	}
-	
-	public static boolean validateUser(User u){
-		
-		if(u.getFirstName()=="" || u.getLastName() =="" || u.getMiddleName() =="" ||  u.getUserName() =="" || u.getEmail() =="" || u.getSecretAnswer()=="" || u.getSecretQuestion()==""){
+
+	public static boolean validateUser(User u) {
+
+		if (u.getFirstName() == "" || u.getLastName() == "" || u.getMiddleName() == "" || u.getUserName() == ""
+				|| u.getEmail() == "" || u.getSecretAnswer() == "" || u.getSecretQuestion() == "") {
 			return false;
 		}
-		
+
 		return true;
 	}
 
-	
-
-	
 }
