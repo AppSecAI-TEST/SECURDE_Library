@@ -10,15 +10,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import org.apache.log4j.Logger;
+
 import custom_errors.LockoutException;
 import db.DBPool;
 import models.Books;
 import models.UnlockedUsers;
 import models.User;
 import security.Security;
+import servlets.Controller;
 
 public class UserService {
+
+	final static Logger logger = Logger.getLogger(UserService.class);
+	
 	public static void addUser(User u) throws SQLException {
+		
+		logger.info(u.getUserName() + "attempting to sign up.");
+		
 		String sql = "INSERT INTO " + User.TABLE_NAME + " (" + User.COLUMN_IDNUM + ", " + User.COLUMN_EMAIL + ", "
 				+ User.COLUMN_FIRSTNAME + ", " + User.COLUMN_MIDDLENAME + ", " + User.COLUMN_LASTNAME + ", "
 				+ User.COLUMN_USERNAME + ", " + User.COLUMN_BIRTHDATE + ", " + User.COLUMN_SECRETQUESTION + ", "
@@ -56,6 +65,7 @@ public class UserService {
 			try {
 				pstmt.close();
 				conn.close();
+				logger.info(u.getUserName() + "sign up success.");
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -65,6 +75,7 @@ public class UserService {
 	}
 
 	public static ArrayList<User> getAllUsers() {
+		logger.info("Retrieving all users.");
 		ArrayList<User> users = new ArrayList<User>();
 
 		String sql = "Select * from " + User.TABLE_NAME;
@@ -121,6 +132,20 @@ public class UserService {
 	}
 
 	public static ArrayList<User> getAllUsersByStatus(int status) {
+		String stat;
+		switch(status) {
+		case User.STATUS_LOCKED:
+			stat = "LOCKED";
+			break;
+		case User.STATUS_UNLOCKED:
+			stat = "UNLOCKED";
+			break;
+			default:
+				stat = "UNKNOWN STAT VALUE [ "+status+ " ]";
+			
+		}
+		
+		logger.info("Retrieving users with status : " +stat);
 		ArrayList<User> users = new ArrayList<User>();
 
 		String sql = "Select * from " + User.TABLE_NAME + " WHERE " + User.COLUMN_STATUS + " = ?;";
@@ -171,7 +196,6 @@ public class UserService {
 	
 	public static ArrayList<User> getUsersByID(ArrayList<Integer> idNum) {
 		ArrayList<User> users = new ArrayList<User>();
-		
 
 		String sql = "Select * from " + User.TABLE_NAME;
 
@@ -326,6 +350,14 @@ public class UserService {
 
 	}
 	public static void deleteUser(String idNum) {
+		User u = getUserByID(Integer.parseInt(idNum));
+		
+		if(u==null) {
+			u = new User();
+		}
+		
+		logger.info("Deleting "+u.getAccesString()+" ["+idNum+"] "+u.getUserName());
+		
 		String sql = "DELETE FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_IDNUM + " = ?;";
 
 		DBPool.getInstance();
@@ -391,7 +423,9 @@ public class UserService {
 		Connection conn = DBPool.getConnection();
 
 		PreparedStatement pstmt = null;
-
+		
+		logger.info("Locking user ["+id+"] "+getUserNameById(id));
+		
 		try {
 			pstmt = conn.prepareStatement(sql);
 			
@@ -419,7 +453,23 @@ public class UserService {
 				+ User.COLUMN_IDNUM + " =" + id + ";";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
-
+		String stat;
+		switch(status) {
+		case User.STATUS_LOCKED:
+			stat = "Locking";
+			logger.info(stat+" user ["+id+"] "+getUserNameById(id));
+			break;
+		case User.STATUS_UNLOCKED:
+			stat = "Unlocking";
+			logger.info(stat+" user ["+id+"] "+getUserNameById(id));
+			break;
+			default:
+				stat = "UNKNOWN STATUS CHANGE [ "+status+ " ] to";
+				logger.warn(stat+" user ["+id+"] "+getUserNameById(id));
+			
+		}
+		
+		
 		PreparedStatement pstmt = null;
 
 		try {
@@ -453,7 +503,9 @@ public class UserService {
 				+ User.COLUMN_IDNUM + " =" + id + ";";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
-
+		
+		logger.info("["+id+"] "+getUserNameById(id)+" successfully logged in.");
+		
 		PreparedStatement pstmt = null;
 
 		try {
@@ -482,6 +534,7 @@ public class UserService {
 	public static void updateAttempt(int id) {
 		String sql = "SELECT " + User.COLUMN_ATTEMPT + " FROM " + User.TABLE_NAME + " WHERE "
 				+ User.COLUMN_IDNUM + " =?;";
+		
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		int attempt=0;
@@ -501,6 +554,9 @@ public class UserService {
 			System.out.println("ATTEMPT-" + attempt);
 //			pstmt.close();
 			attempt++;
+
+			logger.warn("Failed login attempt #"+attempt+" on user ["+id+"] "+getUserNameById(id));
+			
 			System.out.println("ATTEMPT2-" + attempt);
 			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_ATTEMPT + " =? " + " WHERE "
 					+ User.COLUMN_IDNUM + " =?;";
@@ -529,7 +585,7 @@ public class UserService {
 	public static int logInUser(String username, String password) throws  InvalidKeySpecException, NoSuchAlgorithmException, LockoutException {
 		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_USERNAME +" =?";
 		int id = -1;
-
+		
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
@@ -556,6 +612,9 @@ public class UserService {
 		}
 
 		if (id != -1) {
+
+
+			logger.info("["+id+"]"+username+"attempting to log in.");
 			User u = getUserByID(id);
 			
 			if(u.getAttempt() < 3){
@@ -568,9 +627,15 @@ public class UserService {
 				return -1;
 			}
 			}else{
+
+				logger.info("["+id+"]"+username+" is locked out.");
 				throw new LockoutException();
 				
 			}
+		}else {
+
+
+			logger.info("Unregistered user attempting to log in.");
 		}
 
 		return id;
@@ -590,6 +655,7 @@ public class UserService {
 			pstmt.setInt(1, id);
 			pstmt.executeUpdate();
 
+			logger.info("Unlocking "+"["+id+"]"+getUserNameById(id));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

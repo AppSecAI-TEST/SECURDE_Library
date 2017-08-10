@@ -170,4 +170,14 @@ public class User implements Serializable{
 		return password.split(":")[1];
 	}
 	
+	public String getAccesString() {
+		switch(accessLevel) {
+		case ADMINISTRATOR: return "ADMINISTRATOR";
+		case FACULTY: return "FACULTY";
+		case STUDENT: return "STUDENT";
+		case MANAGER: return "MANAGER";
+		case STAFF: return "STAFF";
+		default: return "UNKNOWN_USER";
+		}
+	}
 }

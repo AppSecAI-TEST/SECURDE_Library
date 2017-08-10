@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 import models.BookReservation;
 import models.Books;
 import models.RoomReservation;
@@ -33,11 +35,13 @@ import services.UserService;
  * Servlet implementation class Controller
  */
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
-		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve",
-		"/new_user", "/search_book","/delete_book", "/update_book", "/login" })
+		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
+		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout" })
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
+	final static Logger logger = Logger.getLogger(Controller.class);
+	
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -52,63 +56,99 @@ public class Controller extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		
 		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request, response));
 		User user = null;
 		if ((int) request.getAttribute("loggedin") != -1) {
-			
+
 			user = UserService.getUserByID((int) request.getAttribute("loggedin"));
 			request.setAttribute("firstname", user.getFirstName());
 		}
 		String servletPath = request.getServletPath(); // returns either /add,
 														// /toggle, /main
-
 		switch (servletPath) {
+		case "/logout":
+			if(user !=null) {
+
+				Cookie[] cookielist = request.getCookies();
+				Cookie c=null;
+				if(cookielist != null)
+				for(int i=0; i<cookielist.length; i++){
+					c= cookielist[i];
+					if(c.getName().equals(Security.COOKIE_NAME)){
+						System.out.println("STOPLOG");
+						c.setMaxAge(0);
+						response.addCookie(c);
+					};
+				}
+
+				request.setAttribute("loggedin", -1);
+				response.sendRedirect("LoggedOut.jsp");
+				
+			}else {
+				response.sendRedirect("home");
+			}
+			break; 
+			
+		case "/signup_page":
+
+			if (user == null)
+				request.getRequestDispatcher("SignUp.jsp").forward(request, response);
+			else
+				response.sendRedirect("home");
+
+			break;
 		case "/login_page":
-			request.getRequestDispatcher("LogIn.jsp").forward(request, response);
+			if (user == null)
+				request.getRequestDispatcher("LogIn.jsp").forward(request, response);
+			else
+				response.sendRedirect("home");
+
 			break;
 		case "/login":
-			if(user == null) {
+			if (user == null) {
 
 				String username = Security.sanitize(request.getParameter("username"));
 				String password = request.getParameter("password");
-				
+
 				int id;
 				try {
 					id = UserService.logInUser(username, password);
 
-					if(id != -1){
+					if (id != -1) {
 						request.setAttribute("loggedin", id);
 						User u = UserService.getUserByID(id);
 						System.out.println(request.getAttribute("loggedin"));
-						Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt()+":"+id+"");
-						c.setMaxAge(60*60*1);
-						
+						Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt() + ":" + id + "");
+						c.setMaxAge(60 * 60 * 1);
+
 						response.addCookie(c);
 						response.sendRedirect("home");
-						
-					}
-					else{
+
+					} else {
 						request.setAttribute("loggedin", -10);
 						request.getRequestDispatcher("LogIn.jsp").forward(request, response);
 					}
-					
+
 				} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (custom_errors.LockoutException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					response.sendError(HttpServletResponse.SC_FORBIDDEN, "User has exceeded allowable login attempts. Please contact the administrator.");
-				} 
-				
-			}else {
+					response.sendError(HttpServletResponse.SC_FORBIDDEN,
+							"User has exceeded allowable login attempts. Please contact the administrator.");
+				}
+
+			} else {
 				response.sendRedirect("home");
 			}
 			break;
 		case "/book_detail":
-			Books bookdetail = BooksService.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
+			Books bookdetail = BooksService
+					.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
 			request.setAttribute("book", bookdetail);
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
 				request.setAttribute("editable", true);
@@ -116,7 +156,8 @@ public class Controller extends HttpServlet {
 			break;
 
 		case "/book_reserve":
-			Books bookreserve = BooksService.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
+			Books bookreserve = BooksService
+					.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
 			BookReservation bookreservation = new BookReservation();
 			bookreservation.setIdBook(bookreserve.getIdBooks());
 			bookreservation.setIdUser((int) request.getAttribute("loggedin"));
@@ -124,25 +165,25 @@ public class Controller extends HttpServlet {
 			GregorianCalendar c = new GregorianCalendar();
 			c.setTimeInMillis(deadline);
 			bookreservation.setDeadline(c);
-			bookreserve.setStatus(1);
+			bookreserve.setStatus(Books.RESERVED);
 			BooksService.updateBook(bookreserve);
 			request.setAttribute("reservation", bookreservation);
 			request.setAttribute("book", bookreserve);
 			request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
 			break;
-			
+
 		case "/search_book":
 			response.getWriter().append("Served at: ").append(request.getContextPath());
 			List<Books> booklist = new ArrayList<Books>();
-			
-			
-			if(Security.sanitize(request.getParameter("keyword"))==null || "".equals(Security.sanitize(request.getParameter("keyword")))){
+
+			if (Security.sanitize(request.getParameter("keyword")) == null
+					|| "".equals(Security.sanitize(request.getParameter("keyword")))) {
 				booklist = BooksService.getAllBooks();
-			}else{
+			} else {
 				System.out.println(Security.sanitize(request.getParameter("keyword")));
 				booklist = BooksService.getBooksBySearch(request.getParameter("keyword"));
 			}
-			
+
 			request.setAttribute("booklist", booklist);
 			request.getRequestDispatcher("BorrowBooks.jsp").forward(request, response);
 			break;
@@ -162,7 +203,7 @@ public class Controller extends HttpServlet {
 				b.setPublisher(Security.sanitize(request.getParameter("publisher")));
 				b.setYear(Integer.parseInt(Security.sanitize(request.getParameter("year"))));
 				b.setLocation(Double.parseDouble(Security.sanitize(request.getParameter("location"))));
-				b.setStatus(0);
+				b.setStatus(Books.AVAILABLE);
 				b.setCreateTime(new GregorianCalendar());
 				String typeString = Security.sanitize(request.getParameter("type"));
 				int type1 = Books.UNKNOWN;
@@ -213,44 +254,42 @@ public class Controller extends HttpServlet {
 		case "/update_book":
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
-				Books b = BooksService.getBookById(Integer.parseInt(Security.sanitize(request.getParameter("idBooks"))));
-				b.setTitle			(Security.sanitize(request.getParameter("updated_title")));
-				b.setAuthor			(Security.sanitize(request.getParameter("updated_author")));
-				b.setPublisher		(Security.sanitize(request.getParameter("updated_publisher")));
-				b.setYear			(Integer.parseInt(Security.sanitize(request.getParameter("updated_year"))));
-				b.setLocation		(Double.parseDouble(Security.sanitize(request.getParameter("updated_location"))));
-				b.setStatus(0);
-				
+				Books b = BooksService
+						.getBookById(Integer.parseInt(Security.sanitize(request.getParameter("idBooks"))));
+				b.setTitle(Security.sanitize(request.getParameter("updated_title")));
+				b.setAuthor(Security.sanitize(request.getParameter("updated_author")));
+				b.setPublisher(Security.sanitize(request.getParameter("updated_publisher")));
+				b.setYear(Integer.parseInt(Security.sanitize(request.getParameter("updated_year"))));
+				b.setLocation(Double.parseDouble(Security.sanitize(request.getParameter("updated_location"))));
+				b.setStatus(Books.AVAILABLE);
+
 				String typeString = Security.sanitize(request.getParameter("updated_type"));
 				int type1 = 0;
-				if("Book".equals(typeString)){
+				if ("Book".equals(typeString)) {
 					type1 = 0;
-				}
-				else if("Magazine".equals(typeString)){
+				} else if ("Magazine".equals(typeString)) {
 					type1 = 1;
-				}
-				else if("Thesis".equals(typeString)){
+				} else if ("Thesis".equals(typeString)) {
 					type1 = 2;
 				}
 				b.setType(type1);
-				
-				
+
 				String[] taglist = Security.sanitize(request.getParameter("updated_tags")).split(",");
-				
-				for(int i=0; i<taglist.length; i++){
+
+				for (int i = 0; i < taglist.length; i++) {
 					Tags t = new Tags();
 					t.setTag(taglist[i]);
 					TagsService tagsservice = new TagsService();
 					tagsservice.addTag(t);
 				}
-				
+
 				BooksService.updateBook(b);
-				
+
 				response.sendRedirect("home");
 			} else {
 				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 
-			}			
+			}
 			break;
 		case "/delete_book":
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
@@ -264,7 +303,7 @@ public class Controller extends HttpServlet {
 
 			}
 			break;
-		
+
 		case "/add_admins_page":
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 				request.getRequestDispatcher("AdminAccountCreation.jsp").forward(request, response);
@@ -273,68 +312,67 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/add_admins":
-			
+
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 
 				try {
-				User u = new User();
+					User u = new User();
 
-				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
-				u.setEmail(request.getParameter("email"));
-				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
-				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
-				u.setLastName(Security.sanitize(request.getParameter("lastname")));
-				int access = User.STUDENT;
-				String accessString = Security.sanitize(request.getParameter("access_level"));
-				switch (accessString) {
-				case "Library Manager":
-					access = User.MANAGER;
-					break;
-				case "Library Staff":
-					access = User.STAFF;
-					break;
-				case "Library Student Assistant":
-				default:
-					access = User.STUDENT;
-				}
-
-				u.setAccessLevel(access);
-				String birthdate = Security.sanitize(request.getParameter("birthdate"));
-				String[] dates = birthdate.split("/");
-				int month = Integer.parseInt(dates[0]);
-				int day = Integer.parseInt(dates[1]);
-				int year = Integer.parseInt(dates[2]);
-				u.setBirthdate(new GregorianCalendar(year, month, day));
-				u.setCreateTime(new GregorianCalendar());
-				u.setLastLogin(new GregorianCalendar());
-				u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
-				String unAnswer = request.getParameter("secret_answer");
-				u.setSecretAnswer(Security.createHash(unAnswer));
-				u.setUserName(Security.sanitize(request.getParameter("username")));
-
-				String unhashed = request.getParameter("password");
-
-				u.setPassword(Security.createHash(unhashed));
-
-				if(UserService.validateUser(u)){
-					UserService.addUser(u);
-					UserService.unlockUser(u.getIdUser());
-					response.sendRedirect("home");
+					u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+					u.setEmail(request.getParameter("email"));
+					u.setFirstName(Security.sanitize(request.getParameter("firstname")));
+					u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+					u.setLastName(Security.sanitize(request.getParameter("lastname")));
+					int access = User.STUDENT;
+					String accessString = Security.sanitize(request.getParameter("access_level"));
+					switch (accessString) {
+					case "Library Manager":
+						access = User.MANAGER;
+						break;
+					case "Library Staff":
+						access = User.STAFF;
+						break;
+					case "Library Student Assistant":
+					default:
+						access = User.STUDENT;
 					}
-					else{
+
+					u.setAccessLevel(access);
+					String birthdate = Security.sanitize(request.getParameter("birthdate"));
+					String[] dates = birthdate.split("/");
+					int month = Integer.parseInt(dates[0]);
+					int day = Integer.parseInt(dates[1]);
+					int year = Integer.parseInt(dates[2]);
+					u.setBirthdate(new GregorianCalendar(year, month, day));
+					u.setCreateTime(new GregorianCalendar());
+					u.setLastLogin(new GregorianCalendar());
+					u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
+					String unAnswer = request.getParameter("secret_answer");
+					u.setSecretAnswer(Security.createHash(unAnswer));
+					u.setUserName(Security.sanitize(request.getParameter("username")));
+
+					String unhashed = request.getParameter("password");
+
+					u.setPassword(Security.createHash(unhashed));
+
+					if (UserService.validateUser(u)) {
+						UserService.addUser(u);
+						UserService.unlockUser(u.getIdUser());
+						response.sendRedirect("home");
+					} else {
 						response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
 					}
-				
+
 				} catch (NoSuchAlgorithmException e) {
 					e.printStackTrace();
 
 				} catch (InvalidKeySpecException e) {
 					e.printStackTrace();
-				} catch(Exception e){
+				} catch (Exception e) {
 					e.printStackTrace();
-					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed");;
+					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed");
+					;
 				}
-
 
 			} else {
 				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
@@ -356,9 +394,10 @@ public class Controller extends HttpServlet {
 				Integer.parseInt(Security.sanitize(request.getParameter("start")));
 			if (Security.sanitize(request.getParameter("end")) != "")
 				Integer.parseInt(Security.sanitize(request.getParameter("end")));
-			request.setAttribute("room", RoomsServices.getRoomById(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
-			request.setAttribute("roomslots",
-					RoomSlotService.getRoomSlotByRoom(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
+			request.setAttribute("room",
+					RoomsServices.getRoomById(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
+			request.setAttribute("roomslots", RoomSlotService
+					.getRoomSlotByRoom(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
 			request.getRequestDispatcher("RoomDetails.jsp").forward(request, response);
 			break;
 		case "/room_reserve":
@@ -372,7 +411,7 @@ public class Controller extends HttpServlet {
 			request.getRequestDispatcher("ReservationSuccess.jsp").forward(request, response);
 			int rrid = RoomReservationService.addRoomReservation(roomreservation);
 			roomreservation.setIdRoomReservation(rrid);
-			RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), 1);
+			RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), RoomSlot.RESERVED);
 			break;
 
 		case "/new_user":
@@ -409,21 +448,22 @@ public class Controller extends HttpServlet {
 				String unhashed = request.getParameter("password");
 
 				u.setPassword(Security.createHash(unhashed));
-				if(UserService.validateUser(u)){
-				UserService.addUser(u);
-				response.sendRedirect("home");}
-				else{
+				if (UserService.validateUser(u)) {
+					UserService.addUser(u);
+					response.sendRedirect("home");
+				} else {
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
 				}
-				
+
 			} catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();
 
 			} catch (InvalidKeySpecException e) {
 				e.printStackTrace();
-			} catch(Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
-				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed.");;
+				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed.");
+				;
 			}
 
 			break;

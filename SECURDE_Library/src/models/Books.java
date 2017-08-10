@@ -20,6 +20,10 @@ public class Books implements Serializable {
 	public final static int MAGAZINE = 1;
 	public final static int THESIS = 2 ;
 	public final static int UNKNOWN = 3;
+
+	public final static int AVAILABLE =0;
+	public final static int RESERVED =1;
+	public final static int OUT =2;
 	
 	private int idBooks;
 	private String title;
