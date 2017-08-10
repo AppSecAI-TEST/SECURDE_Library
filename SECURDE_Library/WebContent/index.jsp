@@ -97,7 +97,7 @@ ${firstname}
 				<a href="search_book">Book List</a>
 			</c:when>
 			<c:when test="${access==5}">
-				<a href="add_admins_page">Add New Employees</a>
+				<a href="add_admins_page">Add New Employees</a><br>
 				<a href="unlock_users_page">Unlock Users</a>
 			</c:when>
 		</c:choose>

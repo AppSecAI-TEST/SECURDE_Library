@@ -16,7 +16,6 @@ public class ServerService {
 		if (c != null)
 			for (int i = 0; i < c.length; i++) {
 				if (c[i].getName().equals(Security.COOKIE_NAME)) {
-					System.out.println("UpdateSession");
 					c[i].setMaxAge(60 * 60 * 1);
 					response.addCookie(c[i]);
 					user = c[i];
@@ -36,10 +35,8 @@ public class ServerService {
 			}
 		}
 		if (user != null) {
-			System.out.println("LOGGED");
 			return u.getIdUser();
 		} else {
-			System.out.println("NO LOGIN");
 			return -1;
 		}
 	}

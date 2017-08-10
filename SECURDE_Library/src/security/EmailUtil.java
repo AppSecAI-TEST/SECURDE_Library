@@ -1,13 +1,16 @@
 package security;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -52,9 +55,12 @@ public class EmailUtil {
 	 * @param toEmail
 	 * @param subject
 	 * @param body
+	 * @throws MessagingException 
+	 * @throws AddressException 
+	 * @throws UnsupportedEncodingException 
 	 */
-	public static void sendEmail(String toEmail, String subject, String body) {
-		try {
+	public static void sendEmail(String toEmail, String subject, String body) throws AddressException, MessagingException, UnsupportedEncodingException {
+
 			MimeMessage msg = new MimeMessage(session);
 			// set message headers
 			msg.addHeader("Content-type", "text/HTML; charset=UTF-8");
@@ -75,9 +81,6 @@ public class EmailUtil {
 			Transport.send(msg);
 
 			System.out.println("EMail Sent Successfully!!");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 //
 //	/**

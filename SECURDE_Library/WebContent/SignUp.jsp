@@ -60,6 +60,7 @@
 			var conPassCheck = false;
 			var dataCheck = false;
 			var emailCheck = false;
+			var idCheck=false;
 			
 			var email = $('#email').val();
 			var emailC = (/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/).test(email);
@@ -109,7 +110,16 @@
 				dataCheck = true;
 			}
 			
-			if(PasswordCheck && conPassCheck && dataCheck && emailCheck){
+			if($('#user_id').val()<0){
+				$('#gen-error').text("ID is not valid.");	
+				idCheck = false;
+				
+			}else{
+				idCheck = true;
+				
+			}
+			
+			if(PasswordCheck && conPassCheck && dataCheck && emailCheck && idCheck){
 				$('#sign-in-form').submit();
 			}else{
 				console.log(PasswordCheck);
@@ -134,7 +144,7 @@
 		<form id="sign-in-form" method="post" action="new_user">
 			<div class="form-group">
 				<label for="user_id">ID #:</label> <input type="number"
-					class="form-control" id="user_id" name="userid">
+					class="form-control" id="user_id" name="userid" maxlength="11">
 			</div>
 			<div class="form-group">
 				<label>Status</label>

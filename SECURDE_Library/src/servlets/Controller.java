@@ -3,9 +3,13 @@ package servlets;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
@@ -15,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import custom_errors.PasswordMismatch;
 import models.BookReservation;
 import models.Books;
 import models.RoomReservation;
@@ -37,12 +42,15 @@ import services.UserService;
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
-		"/change_pass", "/unlock_users_page", "/unlock_users" })
+		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
+		"/temp_pass_change"
+		})
 
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	final static Logger logger = Logger.getLogger(Controller.class);
+	final static Logger booklogger = Logger.getLogger(BooksService.class);
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -70,6 +78,21 @@ public class Controller extends HttpServlet {
 		}
 		String servletPath = request.getServletPath(); // returns either /add,
 														// /toggle, /main
+
+		String user_info;
+
+		if (user == null) {
+			user_info = "[ANONYMOUS USER]";
+		} else {
+			user_info = "[" + user.getIdUser() + " | " + user.getAccesString() + "] " + user.getUserName();
+		}
+
+		if("/temp_pass_change".equals(servletPath)) {
+			request.getRequestDispatcher("MyAccount.jsp").forward(request, response);
+		}else if(user!=null && user.getStatus() == User.STATUS_TEMP) {
+			response.sendRedirect("temp_pass_change");
+		}
+		
 		switch (servletPath) {
 
 		case "/logout":
@@ -81,17 +104,18 @@ public class Controller extends HttpServlet {
 					for (int i = 0; i < cookielist.length; i++) {
 						c = cookielist[i];
 						if (c.getName().equals(Security.COOKIE_NAME)) {
-							System.out.println("STOPLOG");
 							c.setMaxAge(0);
 							response.addCookie(c);
 						}
 						;
 					}
 
+				logger.info(user_info + " logged out.");
 				request.setAttribute("loggedin", -1);
 				response.sendRedirect("LoggedOut.jsp");
 
 			} else {
+				logger.info("Attempted logout by " + user_info);
 				response.sendRedirect("home");
 			}
 			break;
@@ -133,7 +157,6 @@ public class Controller extends HttpServlet {
 					if (id != -1) {
 						request.setAttribute("loggedin", id);
 						User u = UserService.getUserByID(id);
-						System.out.println(request.getAttribute("loggedin"));
 						Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt() + ":" + id + "");
 						c.setMaxAge(60 * 60 * 1);
 
@@ -151,6 +174,7 @@ public class Controller extends HttpServlet {
 				} catch (custom_errors.LockoutException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					logger.warn("Locked out user : " + user_info + " attempted log in.");
 					response.sendError(HttpServletResponse.SC_FORBIDDEN,
 							"User has exceeded allowable login attempts. Please contact the administrator.");
 				}
@@ -169,34 +193,56 @@ public class Controller extends HttpServlet {
 			break;
 
 		case "/book_reserve":
-			Books bookreserve = BooksService
-					.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
-			BookReservation bookreservation = new BookReservation();
-			bookreservation.setIdBook(bookreserve.getIdBooks());
-			bookreservation.setIdUser((int) request.getAttribute("loggedin"));
-			long deadline = BookReservationService.addBookReservation(bookreservation);
-			GregorianCalendar c = new GregorianCalendar();
-			c.setTimeInMillis(deadline);
-			bookreservation.setDeadline(c);
-			bookreserve.setStatus(Books.RESERVED);
-			BooksService.updateBook(bookreserve);
-			request.setAttribute("reservation", bookreservation);
-			request.setAttribute("book", bookreserve);
-			request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
+			if (user != null) {
+				Books bookreserve = BooksService
+						.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
+				BookReservation bookreservation = new BookReservation();
+				bookreservation.setIdBook(bookreserve.getIdBooks());
+				bookreservation.setIdUser(user.getIdUser());
+				long deadline = BookReservationService.addBookReservation(bookreservation);
+				GregorianCalendar c = new GregorianCalendar();
+				c.setTimeInMillis(deadline);
+				bookreservation.setDeadline(c);
+				bookreserve.setStatus(Books.RESERVED);
+				try {
+					BooksService.updateBook(bookreserve);
+					request.setAttribute("reservation", bookreservation);
+					request.setAttribute("book", bookreserve);
+					logger.info(
+							user_info + " reserved book [" + bookreserve.getIdBooks() + "] " + bookreserve.getTitle());
+					request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
+
+				} catch (SQLException e) {
+
+					booklogger
+							.error("DATABASE FAILURE: " + user_info + " attempted to reserve book [" + bookreserve.getTitle() + "]");
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					e.printStackTrace();
+				}
+			} else {
+				logger.warn(user_info + " attempted book reservation.");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User is not logged in.");
+			}
 			break;
 
 		case "/search_book":
 			response.getWriter().append("Served at: ").append(request.getContextPath());
 			List<Books> booklist = new ArrayList<Books>();
 
-			if (Security.sanitize(request.getParameter("keyword")) == null
-					|| "".equals(Security.sanitize(request.getParameter("keyword")))) {
-				booklist = BooksService.getAllBooks();
-			} else {
-				System.out.println(Security.sanitize(request.getParameter("keyword")));
-				booklist = BooksService.getBooksBySearch(request.getParameter("keyword"));
-			}
+			try {
+				if (Security.sanitize(request.getParameter("keyword")) == null
+						|| "".equals(Security.sanitize(request.getParameter("keyword")))) {
+					booklist = BooksService.getAllBooks();
+				} else {
+					booklist = BooksService.getBooksBySearch(request.getParameter("keyword"));
 
+				}
+			} catch (SQLException e) {
+				booklogger.error("DATABASE FAILURE: " + user_info + " attempt at retrieving books. Keyword : ["
+						+ Security.sanitize(request.getParameter("keyword")) + "]");
+				e.printStackTrace();
+			}
 			request.setAttribute("booklist", booklist);
 			request.getRequestDispatcher("BorrowBooks.jsp").forward(request, response);
 			break;
@@ -204,7 +250,8 @@ public class Controller extends HttpServlet {
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 				request.getRequestDispatcher("AdminAddBook.jsp").forward(request, response);
 			} else {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+				logger.warn(user_info + " attempted to access add book page without proper access level.");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
 			}
 			break;
 		case "/addbook":
@@ -230,22 +277,33 @@ public class Controller extends HttpServlet {
 				}
 				b.setType(type1);
 
-				int bookid = BooksService.addBook(b);
-				String[] taglist = Security.sanitize(request.getParameter("tags")).split(",");
+				int bookid;
+				try {
+					bookid = BooksService.addBook(b);
 
-				for (int i = 0; i < taglist.length; i++) {
-					Tags t = new Tags();
-					t.setBookid(bookid);
-					t.setTag(taglist[i]);
-					TagsService tagsservice = new TagsService();
-					tagsservice.addTag(t);
+					String[] taglist = Security.sanitize(request.getParameter("tags")).split(",");
+
+					for (int i = 0; i < taglist.length; i++) {
+						Tags t = new Tags();
+						t.setBookid(bookid);
+						t.setTag(taglist[i]);
+						TagsService tagsservice = new TagsService();
+						tagsservice.addTag(t);
+					}
+
+					request.setAttribute(Books.COLUMN_IDBOOK, bookid);
+					booklogger.info("[" + bookid + "] " + b.getTitle() + " added by " + user_info);
+					request.getRequestDispatcher("book_detail").forward(request, response);
+
+				} catch (SQLException e) {
+					booklogger
+							.error("DATABASE FAILURE: " + user_info + " attempted to add book [" + b.getTitle() + "]");
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				}
-
-				request.setAttribute(Books.COLUMN_IDBOOK, bookid);
-				request.getRequestDispatcher("book_detail").forward(request, response);
-				;
 			} else {
-				response.sendRedirect("home");
+
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
 			}
 			break;
 		case "/edit_book":
@@ -260,10 +318,14 @@ public class Controller extends HttpServlet {
 
 				request.getRequestDispatcher("AdminEditBook.jsp").forward(request, response);
 			} else {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+
+				logger.warn(user_info + " attempted to edit book ["
+						+ Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)) + "]");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
 
 			}
 			break;
+		// here
 		case "/update_book":
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
@@ -296,12 +358,22 @@ public class Controller extends HttpServlet {
 					tagsservice.addTag(t);
 				}
 
-				BooksService.updateBook(b);
+				try {
+					BooksService.updateBook(b);
+					booklogger.info(user_info + " edited book [" + b.getIdBooks() + "] " + b.getTitle());
+					response.sendRedirect("home");
+				} catch (SQLException e) {
 
-				response.sendRedirect("home");
+					booklogger
+							.error("DATABASE FAILURE: " + user_info + " attempted to add book [" + b.getTitle() + "]");
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				}
+
 			} else {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
-
+				logger.warn(user_info + " attempted to edit book ["
+						+ Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)) + "]");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
 			}
 			break;
 		case "/delete_book":
@@ -324,6 +396,46 @@ public class Controller extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 			}
 			break;
+		case "/secret_question":
+			int id = Integer.parseInt(Security.sanitize(request.getParameter("userid")));
+			String username = Security.sanitize(request.getParameter("username"));
+			User u = new User();
+			u = UserService.getUserByIDandUsername(id, username);
+			if (u!=null) {
+				request.setAttribute("forgottenuser", u);
+				request.getRequestDispatcher("SecretQuestion.jsp").forward(request, response);
+			} else {
+				request.getRequestDispatcher("SecretQuestionFail.jsp").forward(request, response);
+			}
+			break;
+		case "/answer_question":
+			String ans = Security.sanitize(request.getParameter("secretanswer"));
+			int idu = Integer.parseInt(request.getParameter("idUser"));
+			String name = request.getParameter("userName");
+			try {
+				UserService.validateQuestionAndAnswer(idu, name, ans); 
+				request.getRequestDispatcher("SecretQuestionSuccess.jsp").forward(request, response);
+
+			} catch (PasswordMismatch e1) {
+				System.out.println("PASSWORD MISMATCH");
+				request.getRequestDispatcher("SecretQuestionFail.jsp").forward(request, response);
+				
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (AddressException e) {
+				System.out.println("ADDRESS UNKNOWN");
+				request.getRequestDispatcher("SecretQuestionFailedSend.jsp").forward(request, response);
+				e.printStackTrace();
+			} catch (MessagingException e) {
+				System.out.println("SEND FAILED");
+				request.getRequestDispatcher("SecretQuestionFailedSend.jsp").forward(request, response);
+				e.printStackTrace();
+			}
+			break;
+		case "/forget_password_page":
+			request.getRequestDispatcher("ForgotPassword.jsp").forward(request, response);
+			break;
+		
 		case "/unlock_users_page":
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 
@@ -339,7 +451,8 @@ public class Controller extends HttpServlet {
 				try {
 					User lockedu = UserService
 							.getUserByID(Integer.parseInt(Security.sanitize(request.getParameter("idUser"))));
-					UserService.updateStatus(lockedu.getIdUser(), lockedu.getStatus());
+					UserService.updateStatus(lockedu.getIdUser(), User.STATUS_UNLOCKED);
+					
 					request.getRequestDispatcher("UnlockedUsersSuccess.jsp").forward(request, response);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -358,13 +471,13 @@ public class Controller extends HttpServlet {
 
 				try {
 
-					User u = new User();
+					User u2 = new User();
 
-					u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
-					u.setEmail(request.getParameter("email"));
-					u.setFirstName(Security.sanitize(request.getParameter("firstname")));
-					u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
-					u.setLastName(Security.sanitize(request.getParameter("lastname")));
+					u2.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+					u2.setEmail(request.getParameter("email"));
+					u2.setFirstName(Security.sanitize(request.getParameter("firstname")));
+					u2.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+					u2.setLastName(Security.sanitize(request.getParameter("lastname")));
 					int access = User.STUDENT;
 					String accessString = Security.sanitize(request.getParameter("access_level"));
 					switch (accessString) {
@@ -382,27 +495,27 @@ public class Controller extends HttpServlet {
 						access = User.STUDENT;
 					}
 
-					u.setAccessLevel(access);
+					u2.setAccessLevel(access);
 					String birthdate = Security.sanitize(request.getParameter("birthdate"));
 					String[] dates = birthdate.split("/");
 					int month = Integer.parseInt(dates[0]);
 					int day = Integer.parseInt(dates[1]);
 					int year = Integer.parseInt(dates[2]);
-					u.setBirthdate(new GregorianCalendar(year, month, day));
-					u.setCreateTime(new GregorianCalendar());
-					u.setLastLogin(new GregorianCalendar());
-					u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
+					u2.setBirthdate(new GregorianCalendar(year, month, day));
+					u2.setCreateTime(new GregorianCalendar());
+					u2.setLastLogin(new GregorianCalendar());
+					u2.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
 					String unAnswer = request.getParameter("secret_answer");
-					u.setSecretAnswer(Security.createHash(unAnswer));
-					u.setUserName(Security.sanitize(request.getParameter("username")));
+					u2.setSecretAnswer(Security.createHash(unAnswer));
+					u2.setUserName(Security.sanitize(request.getParameter("username")));
 
 					String unhashed = request.getParameter("password");
 
-					u.setPassword(Security.createHash(unhashed));
+					u2.setPassword(Security.createHash(unhashed));
 
-					if (UserService.validateUser(u)) {
-						UserService.addUser(u);
-						UserService.unlockUser(u.getIdUser());
+					if (UserService.validateUser(u2)) {
+						UserService.addUser(u2);
+						UserService.unlockUser(u2.getIdUser());
 						response.sendRedirect("home");
 					} else {
 						response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
@@ -464,37 +577,37 @@ public class Controller extends HttpServlet {
 
 			try {
 
-				User u = new User();
+				User u1 = new User();
 
-				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
-				u.setEmail(request.getParameter("email"));
-				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
-				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
-				u.setLastName(Security.sanitize(request.getParameter("lastname")));
+				u1.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+				u1.setEmail(request.getParameter("email"));
+				u1.setFirstName(Security.sanitize(request.getParameter("firstname")));
+				u1.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+				u1.setLastName(Security.sanitize(request.getParameter("lastname")));
 				int access = 0;
 				String accessString = Security.sanitize(request.getParameter("access_level"));
 				if ("Faculty".equals(accessString)) {
 					access = 1;
 				}
-				u.setAccessLevel(access);
+				u1.setAccessLevel(access);
 				String birthdate = Security.sanitize(Security.sanitize(request.getParameter("birthdate")));
 				String[] dates = birthdate.split("/");
 				int month = Integer.parseInt(dates[0]);
 				int day = Integer.parseInt(dates[1]);
 				int year = Integer.parseInt(dates[2]);
-				u.setBirthdate(new GregorianCalendar(year, month, day));
-				u.setCreateTime(new GregorianCalendar());
-				u.setLastLogin(new GregorianCalendar());
-				u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
+				u1.setBirthdate(new GregorianCalendar(year, month, day));
+				u1.setCreateTime(new GregorianCalendar());
+				u1.setLastLogin(new GregorianCalendar());
+				u1.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
 				String unAnswer = request.getParameter("secret_answer");
-				u.setSecretAnswer(Security.createHash(unAnswer));
-				u.setUserName(Security.sanitize(request.getParameter("username")));
+				u1.setSecretAnswer(Security.createHash(unAnswer));
+				u1.setUserName(Security.sanitize(request.getParameter("username")));
 
 				String unhashed = request.getParameter("password");
 
-				u.setPassword(Security.createHash(unhashed));
-				if (UserService.validateUser(u)) {
-					UserService.addUser(u);
+				u1.setPassword(Security.createHash(unhashed));
+				if (UserService.validateUser(u1)) {
+					UserService.addUser(u1);
 					response.sendRedirect("home");
 				} else {
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
@@ -518,9 +631,9 @@ public class Controller extends HttpServlet {
 				if (user != null) {
 					String oldpass = request.getParameter("oldpassword");
 					String newpass = request.getParameter("newpassword");
-					int id = user.getIdUser();
+					int iduser = user.getIdUser();
 
-					UserService.changePassword(oldpass, newpass, id);
+					UserService.changePassword(oldpass, newpass, iduser);
 					request.getRequestDispatcher("PasswordSuccess.jsp").forward(request, response);
 
 				} else {
