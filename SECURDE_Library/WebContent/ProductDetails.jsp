@@ -111,55 +111,12 @@
 											</c:otherwise>
 									</c:choose>
 								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="container">
-				<div class="row">
-					<div class="col-md-9">
-						<div class="thumbnail">
-							<div class="caption">
-								<div class="col-sm-6 form-group">
-									<label><h4>Book Reviews</h4></label>
+								<form action="commentreview" method="post">
+								<input type="text" value="${book.idBooks}" name="idBooks" class="invisible"/>
+								<input type="submit" value="Add Review"/>
+								
+								</form>
 
-
-									<div id="review_container">
-
-										<div class="card">
-											<div class="card-block">
-												<h4 class="card-title">Love It</h4>
-												<h6 class="card-subtitle mb-2 text-muted">10/10</h6>
-												<p class="card-text">Damn that book wow such good.</p>
-
-											</div>
-										</div>
-
-									</div>
-
-
-									<div id="new_review">
-
-										<div class="card">
-											<div class="card-block">
-												<h4 class="card-title">Love It</h4>
-												<h6 class="card-subtitle mb-2 text-muted">10/10</h6>
-												<p class="card-text">
-												<div class="form-group">
-													<label for="comment">Review Now:</label>
-													<textarea class="form-control" rows="5" id="comment"></textarea>
-												</div>
-												</p>
-
-
-											</div>
-
-											<button type="submit" class="btn btn-success margin-top">Submit</button>
-										</div>
-
-									</div>
-								</div>
 							</div>
 						</div>
 					</div>

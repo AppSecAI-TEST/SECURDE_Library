@@ -25,6 +25,7 @@ import models.BookReservation;
 import models.Books;
 import models.RoomReservation;
 import models.RoomSlot;
+import models.Reviews;
 import models.Tags;
 import models.User;
 import security.Security;
@@ -33,6 +34,7 @@ import services.BooksService;
 import services.RoomReservationService;
 import services.RoomSlotService;
 import services.RoomsServices;
+import services.ReviewsService;
 import services.ServerService;
 import services.TagsService;
 import services.UserService;
@@ -44,7 +46,7 @@ import services.UserService;
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
 		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
-		"/temp_pass_change"
+		"/temp_pass_change","/addreview", "/commentreview",  "/delete_reserve"
 		})
 
 public class Controller extends HttpServlet {
@@ -52,7 +54,7 @@ public class Controller extends HttpServlet {
 
 	final static Logger logger = Logger.getLogger(Controller.class);
 	final static Logger booklogger = Logger.getLogger(BooksService.class);
-
+	final static Logger reviewlogger = Logger.getLogger(ReviewsService.class);
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -203,7 +205,6 @@ public class Controller extends HttpServlet {
 				request.setAttribute("editable", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
 			break;
-
 		case "/book_reserve":
 			if (user != null) {
 				Books bookreserve = BooksService
@@ -259,6 +260,7 @@ public class Controller extends HttpServlet {
 			request.getRequestDispatcher("BorrowBooks.jsp").forward(request, response);
 			break;
 		case "/addbookpage":
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 				request.getRequestDispatcher("AdminAddBook.jsp").forward(request, response);
 			} else {
@@ -267,6 +269,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/addbook":
+			String pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 				Books b = new Books();
 
@@ -318,6 +328,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/edit_book":
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
 				int id = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
@@ -338,6 +356,14 @@ public class Controller extends HttpServlet {
 			break;
 		// here
 		case "/update_book":
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
 				Books b = BooksService
@@ -399,6 +425,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/delete_book":
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
 				int idBook = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
@@ -469,6 +503,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/unlock_users":
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 				try {
 					User lockedu = UserService
@@ -488,7 +530,14 @@ public class Controller extends HttpServlet {
 
 			break;
 		case "/add_admins":
-
+			pass = request.getParameter("password");
+			try {
+				Security.validatePassword(pass, user.getPassword());
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 
 				try {
@@ -578,9 +627,13 @@ public class Controller extends HttpServlet {
 					RoomsServices.getRoomById(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
 			request.setAttribute("roomslots", RoomSlotService
 					.getRoomSlotByRoom(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
+				request.setAttribute("override", true);
+				
 			request.getRequestDispatcher("RoomDetails.jsp").forward(request, response);
 			break;
 		case "/room_reserve":
+			
 			RoomSlot roomreserve = RoomSlotService
 					.getRoomSlotById(Integer.parseInt(Security.sanitize(request.getParameter("idRoomSlot"))));
 			RoomReservation roomreservation = new RoomReservation();
@@ -592,6 +645,26 @@ public class Controller extends HttpServlet {
 			int rrid = RoomReservationService.addRoomReservation(roomreservation);
 			roomreservation.setIdRoomReservation(rrid);
 			RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), RoomSlot.RESERVED);
+			break;
+
+		case "/commentreview":
+			if(user != null){
+				request.setAttribute(Books.COLUMN_IDBOOK, request.getParameter(Books.COLUMN_IDBOOK));
+				request.getRequestDispatcher("AddReviews.jsp").forward(request, response);
+			}else{
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unathorized page access.");
+			}
+			break;
+
+		case "/delete_reserve":
+			
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+				roomreserve = RoomSlotService
+						.getRoomSlotById(Integer.parseInt(Security.sanitize(request.getParameter("idRoomSlot"))));
+				RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), RoomSlot.AVAILABLE);
+				request.getRequestDispatcher("ReservationDeletion.jsp").forward(request, response);
+			}
+				
 			break;
 
 		case "/new_user":
@@ -671,13 +744,40 @@ public class Controller extends HttpServlet {
 
 			break;
 
+		case "/addreview":
+				if (user != null) {
+					Reviews r = new Reviews();
+					r.setReview(Security.sanitize(request.getParameter("review")));
+					r.setIdBook(Integer.parseInt(Security.sanitize(request.getParameter("idBooks"))));
+					r.setIdUser(user.getIdUser());
+					r.setRating(4);
+					r.setCreateTime(new GregorianCalendar());
+					
+					int reviewid;
+					try {
+						reviewid = ReviewsService.addReview(r);
+						request.setAttribute(Reviews.COLUMN_REVIEWID, reviewid);
+						reviewlogger.info("[" + reviewid + "] " + r.getReview() + " review added by " + user_info);
+						request.getRequestDispatcher("book_detail").forward(request, response);
+
+					} catch (SQLException e) {
+						reviewlogger
+								.error("DATABASE FAILURE: " + user_info + " attempted to add review[" + r.getReview() + "]");
+						e.printStackTrace();
+						response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					}
+				} else {
+
+					response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
+				}
+				
+		break;
 		case "/home":
 		default:
 			if (user != null) {
 				request.setAttribute("access", user.getAccessLevel());
 			}
 			request.getRequestDispatcher("index.jsp").forward(request, response);
-
 		}
 
 	}

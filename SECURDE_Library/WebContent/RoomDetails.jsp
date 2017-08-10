@@ -68,20 +68,32 @@
 	<h5>Timeslot: ${roomslot.start_time} - ${roomslot.end_time}</h5>
 
 	<c:if test="${loggedin != -1}">
-
+	
 		<c:choose>
 
 			<c:when test="${roomslot.status==0}">
-				<form action="room_reserve" method="post">
-					<input type="text" class="invisible" value="${roomslot.idRoomSlot}"
-						name="idRoomSlot" />
-					<button type="submit" class="btn btn-success">Reserve</button>
-
-				</form>
+						<form action="room_reserve" method="post">
+							<input type="text" class="invisible" value="${roomslot.idRoomSlot}"
+								name="idRoomSlot" />
+							<button type="submit" class="btn btn-success">Reserve</button>
+		
+						</form>
 			</c:when>
 			<c:otherwise>
-				<button type="button" class="btn btn-disabled">Unavailable
-				</button>
+					<c:choose>
+						<c:when test="${override != null }">
+							<form action="delete_reserve" method="post">
+								<input type="text" class="invisible" value="${roomslot.idRoomSlot}"
+									name="idRoomSlot" />
+								<button type="submit" class="btn btn-danger">Delete Reservation</button>
+			
+							</form>
+						</c:when>
+						<c:otherwise>
+							<button type="button" class="btn btn-disabled">Unavailable </button>
+						</c:otherwise>
+					</c:choose>
+					
 			</c:otherwise>
 		</c:choose>
 
