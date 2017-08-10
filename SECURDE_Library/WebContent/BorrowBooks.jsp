@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,77 +12,109 @@
 
 <title>Jumbotron Template for Bootstrap</title>
 
-<jsp:include page="components/headers.jsp"/>
+<jsp:include page="components/headers.jsp" />
 <style>
-#borrow-books{
-	margin-top:2%;
-	padding:10px;
+#borrow-books {
+	margin-top: 2%;
+	padding: 10px;
 	border-radius: 10px;
 	background-color: #e0e0e0;
 }
 
-#results-list{
+#results-list {
 	border-color: #333;
 }
-
 </style>
 <body>
 
-<jsp:include page="components/navbar.jsp"/>
+	<jsp:include page="components/navbar.jsp" />
 	<div id="borrow-books" class="col-md-8 col-md-offset-2">
-		
-		<form class="content row">
+
+		<form class="content row" action="search_book">
 			<div class="col-md-9">
-			<input type="text" placeholder="Keyword"
-					class="form-control" id="keyword">
+				<input type="text" placeholder="Keyword" class="form-control"
+					id="keyword" name="keyword">
 			</div>
-				<button type="submit" class="btn btn-success col-md-2 ">Search</button>		
+			<button type="submit" class="btn btn-success col-md-2 ">Search</button>
 		</form>
-		
+
 	</div>
 
 
 	<div id="advanced-search" class="col-md-2 col-md-offset-5">
+		<!-- 
 		<a href="AdvancedSearch.html" class="link">Advanced Search</a>
+		 -->
 	</div>
-	
-	<div class="card col-md-9 col-md-offset-2">
-  		<div class="card-block card-space" >
-    		<div class="container">
-				<div class="row">
-					<div class="col-md-9">
-              			<div class="thumbnail">
-                			<div class="caption">
-                			<div class="btn-group cart pull-right">
-								<button type="button" class="btn btn-success">
-									Details
-								</button>
+	<c:forEach items="${booklist}" var="book">
+		<div class="card col-md-9 col-md-offset-2">
+			<div class="card-block card-space">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-9">
+							<div class="thumbnail">
+								<div class="caption">
+									<div class="btn-group cart pull-right">
+										<form action="book_detail" method="get">
+											<input type="text" name="idBooks" value="${book.idBooks}"
+												class="invisible" />
+											<button type="submit" class="btn btn-success">Details
+											</button>
+										</form>
+									</div>
+									<h4>
+										${book.title}
+									</h4>
+									<h5>
+										Author: ${book.author}
+									</h5>
+									<h5>
+										Publisher: ${book.publisher}
+									</h5>
+									<h6>
+										Year Published: ${book.year}
+									</h6>
+									<h6>
+										Type: <c:choose>
+												<c:when test="${book.type==0}">
+												Book
+											</c:when>
+												<c:when test="${book.type==1}">
+												Magazine
+											</c:when>
+												<c:when test="${book.type==2}">
+												Thesis
+											</c:when>
+												<c:otherwise>
+												Unknown
+											</c:otherwise>
+											</c:choose>
+										
+									</h6>
+								</div>
+								<div class="caption">
+									<p>
+										Status:
+										<c:choose>
+											<c:when test="${book.status==0}">
+												Available
+											</c:when>
+											<c:otherwise>
+												Reserved
+											</c:otherwise>
+										</c:choose>
+									</p>
+								</div>
 							</div>
-                  					<h4><a href="#">Book Title</a></h4>
-                  					<h5><a href="#">Author</a></h5>
-                  					<h5><a href="#">Publisher</a></h5>
-                  					<h6><a href="#">Brief Description</a></h6>
-                  			</div>
-                			<div class="caption">
-                  				<p>Status: Available </p>	
-                			</div>
-              			</div>
-            		</div>
-  				</div>
-  			</div>
-  		</div>
-	</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
-	<!-- Bootstrap core JavaScript
-    ================================================== -->
-	<!-- Placed at the end of the document so the pages load faster -->
-	<script
-		src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<script>
-		window.jQuery
-				|| document
-						.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')
-	</script>
-	<script src="bootstrap/js/bootstrap.min.js"></script>
+	</c:forEach>
+
+
+
 </body>
 </html>

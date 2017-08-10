@@ -19,6 +19,17 @@ public class User implements Serializable{
 	public final static String COLUMN_SECRETQUESTION = "secret_question";
 	public final static String COLUMN_SECRETANSWER = "secret_answer";
 	public final static String COLUMN_STATUS = "status";
+	public final static String COLUMN_ATTEMPT = "attempt";
+	
+	public final static int STUDENT = 0;
+	public final static int FACULTY = 1;
+	public final static int ASSISTANT = 2;
+	public final static int MANAGER = 3;
+	public final static int STAFF = 4;
+	public final static int ADMINISTRATOR = 5;
+	
+	public final static int STATUS_UNLOCKED = 0;
+	public final static int STATUS_LOCKED = 1;
 	
 	private String firstName, middleName, lastName;
 	private int idUser;
@@ -30,8 +41,16 @@ public class User implements Serializable{
 	private GregorianCalendar birthdate;
 	private int accessLevel;
 	private String secretQuestion, secretAnswer;
-	private int status;
+	private int status, attempt;
 	
+	public int getAttempt() {
+		return attempt;
+	}
+
+	public void setAttempt(int attempt) {
+		this.attempt = attempt;
+	}
+
 	public int getStatus() {
 		return status;
 	}
@@ -148,4 +167,18 @@ public class User implements Serializable{
 		this.secretAnswer = secretAnswer;
 	}
 	
+	public String getSalt(){
+		return password.split(":")[1];
+	}
+	
+	public String getAccesString() {
+		switch(accessLevel) {
+		case ADMINISTRATOR: return "ADMINISTRATOR";
+		case FACULTY: return "FACULTY";
+		case STUDENT: return "STUDENT";
+		case MANAGER: return "MANAGER";
+		case STAFF: return "STAFF";
+		default: return "UNKNOWN_USER";
+		}
+	}
 }

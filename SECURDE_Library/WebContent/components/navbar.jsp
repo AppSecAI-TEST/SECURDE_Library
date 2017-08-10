@@ -25,7 +25,7 @@
 		<div class="navbar-right" id="nav-buttons">
 
 			<%
-				if (request.getAttribute("loggedin")==null || -1 == (int) request.getAttribute("loggedin")) {
+				if (request.getAttribute("loggedin")==null || -1 >= (int) request.getAttribute("loggedin")) {
 			%>
 
 			<form action="login_page" method="post" id="nav_login"
@@ -53,7 +53,7 @@
 			<form action="logout" method="post" id="nav_logout"
 				class="invisible"></form>
 
-			<form action="myacc_page" method="post" id="nav_myacc"
+			<form action="myaccount" method="post" id="nav_myacc"
 				class="invisible"></form>
 				
 			<script>

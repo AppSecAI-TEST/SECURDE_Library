@@ -1,0 +1,559 @@
+package servlets;
+
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+import models.BookReservation;
+import models.Books;
+import models.RoomReservation;
+import models.RoomSlot;
+import models.Tags;
+import models.User;
+import security.Security;
+import services.BookReservationService;
+import services.BooksService;
+import services.RoomReservationService;
+import services.RoomSlotService;
+import services.RoomsServices;
+import services.ServerService;
+import services.TagsService;
+import services.UserService;
+
+/**
+ * Servlet implementation class Controller
+ */
+@WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
+		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
+		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
+		"/change_pass", "/unlock_users_page", "/unlock_users" })
+
+public class Controller extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	final static Logger logger = Logger.getLogger(Controller.class);
+
+	/**
+	 * @see HttpServlet#HttpServlet()
+	 */
+	public Controller() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		// TODO Auto-generated method stub
+		response.getWriter().append("Served at: ").append(request.getContextPath());
+		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request, response));
+		User user = null;
+		if ((int) request.getAttribute("loggedin") != -1) {
+
+			user = UserService.getUserByID((int) request.getAttribute("loggedin"));
+			request.setAttribute("firstname", user.getFirstName());
+		}
+		String servletPath = request.getServletPath(); // returns either /add,
+														// /toggle, /main
+		switch (servletPath) {
+
+		case "/logout":
+			if (user != null) {
+
+				Cookie[] cookielist = request.getCookies();
+				Cookie c = null;
+				if (cookielist != null)
+					for (int i = 0; i < cookielist.length; i++) {
+						c = cookielist[i];
+						if (c.getName().equals(Security.COOKIE_NAME)) {
+							System.out.println("STOPLOG");
+							c.setMaxAge(0);
+							response.addCookie(c);
+						}
+						;
+					}
+
+				request.setAttribute("loggedin", -1);
+				response.sendRedirect("LoggedOut.jsp");
+
+			} else {
+				response.sendRedirect("home");
+			}
+			break;
+
+		case "/signup_page":
+
+			if (user == null)
+				request.getRequestDispatcher("SignUp.jsp").forward(request, response);
+			else
+				response.sendRedirect("home");
+
+			break;
+
+		case "/myaccount":
+			if (user != null) {
+				request.getRequestDispatcher("MyAccount.jsp").forward(request, response);
+			} else {
+				response.sendRedirect("home");
+			}
+			break;
+
+		case "/login_page":
+			if (user == null)
+				request.getRequestDispatcher("LogIn.jsp").forward(request, response);
+			else
+				response.sendRedirect("home");
+
+			break;
+		case "/login":
+			if (user == null) {
+
+				String username = Security.sanitize(request.getParameter("username"));
+				String password = request.getParameter("password");
+
+				int id;
+				try {
+					id = UserService.logInUser(username, password);
+
+					if (id != -1) {
+						request.setAttribute("loggedin", id);
+						User u = UserService.getUserByID(id);
+						System.out.println(request.getAttribute("loggedin"));
+						Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt() + ":" + id + "");
+						c.setMaxAge(60 * 60 * 1);
+
+						response.addCookie(c);
+						response.sendRedirect("home");
+
+					} else {
+						request.setAttribute("loggedin", -10);
+						request.getRequestDispatcher("LogIn.jsp").forward(request, response);
+					}
+
+				} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (custom_errors.LockoutException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_FORBIDDEN,
+							"User has exceeded allowable login attempts. Please contact the administrator.");
+				}
+
+			} else {
+				response.sendRedirect("home");
+			}
+			break;
+		case "/book_detail":
+			Books bookdetail = BooksService
+					.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
+			request.setAttribute("book", bookdetail);
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
+				request.setAttribute("editable", true);
+			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
+			break;
+
+		case "/book_reserve":
+			Books bookreserve = BooksService
+					.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
+			BookReservation bookreservation = new BookReservation();
+			bookreservation.setIdBook(bookreserve.getIdBooks());
+			bookreservation.setIdUser((int) request.getAttribute("loggedin"));
+			long deadline = BookReservationService.addBookReservation(bookreservation);
+			GregorianCalendar c = new GregorianCalendar();
+			c.setTimeInMillis(deadline);
+			bookreservation.setDeadline(c);
+			bookreserve.setStatus(Books.RESERVED);
+			BooksService.updateBook(bookreserve);
+			request.setAttribute("reservation", bookreservation);
+			request.setAttribute("book", bookreserve);
+			request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
+			break;
+
+		case "/search_book":
+			response.getWriter().append("Served at: ").append(request.getContextPath());
+			List<Books> booklist = new ArrayList<Books>();
+
+			if (Security.sanitize(request.getParameter("keyword")) == null
+					|| "".equals(Security.sanitize(request.getParameter("keyword")))) {
+				booklist = BooksService.getAllBooks();
+			} else {
+				System.out.println(Security.sanitize(request.getParameter("keyword")));
+				booklist = BooksService.getBooksBySearch(request.getParameter("keyword"));
+			}
+
+			request.setAttribute("booklist", booklist);
+			request.getRequestDispatcher("BorrowBooks.jsp").forward(request, response);
+			break;
+		case "/addbookpage":
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+				request.getRequestDispatcher("AdminAddBook.jsp").forward(request, response);
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+			}
+			break;
+		case "/addbook":
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+				Books b = new Books();
+
+				b.setTitle(Security.sanitize(request.getParameter("book_title")));
+				b.setAuthor(Security.sanitize(request.getParameter("author")));
+				b.setPublisher(Security.sanitize(request.getParameter("publisher")));
+				b.setYear(Integer.parseInt(Security.sanitize(request.getParameter("year"))));
+				b.setLocation(Double.parseDouble(Security.sanitize(request.getParameter("location"))));
+				b.setStatus(Books.AVAILABLE);
+				b.setCreateTime(new GregorianCalendar());
+				String typeString = Security.sanitize(request.getParameter("type"));
+				int type1 = Books.UNKNOWN;
+
+				if ("Book".equals(typeString)) {
+					type1 = Books.BOOK;
+				} else if ("Magazine".equals(typeString)) {
+					type1 = Books.MAGAZINE;
+				} else if ("Thesis".equals(typeString)) {
+					type1 = Books.THESIS;
+				}
+				b.setType(type1);
+
+				int bookid = BooksService.addBook(b);
+				String[] taglist = Security.sanitize(request.getParameter("tags")).split(",");
+
+				for (int i = 0; i < taglist.length; i++) {
+					Tags t = new Tags();
+					t.setBookid(bookid);
+					t.setTag(taglist[i]);
+					TagsService tagsservice = new TagsService();
+					tagsservice.addTag(t);
+				}
+
+				request.setAttribute(Books.COLUMN_IDBOOK, bookid);
+				request.getRequestDispatcher("book_detail").forward(request, response);
+				;
+			} else {
+				response.sendRedirect("home");
+			}
+			break;
+		case "/edit_book":
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+
+				int id = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
+				Books b = BooksService.getBookById(id);
+				request.setAttribute("show_book", b);
+
+				ArrayList<Tags> t = (new TagsService()).getTagsPerBook(b.getIdBooks());
+				request.setAttribute("show_book_tags", t);
+
+				request.getRequestDispatcher("AdminEditBook.jsp").forward(request, response);
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+
+			}
+			break;
+		case "/update_book":
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+
+				Books b = BooksService
+						.getBookById(Integer.parseInt(Security.sanitize(request.getParameter("idBooks"))));
+				b.setTitle(Security.sanitize(request.getParameter("updated_title")));
+				b.setAuthor(Security.sanitize(request.getParameter("updated_author")));
+				b.setPublisher(Security.sanitize(request.getParameter("updated_publisher")));
+				b.setYear(Integer.parseInt(Security.sanitize(request.getParameter("updated_year"))));
+				b.setLocation(Double.parseDouble(Security.sanitize(request.getParameter("updated_location"))));
+				b.setStatus(Books.AVAILABLE);
+
+				String typeString = Security.sanitize(request.getParameter("updated_type"));
+				int type1 = 0;
+				if ("Book".equals(typeString)) {
+					type1 = 0;
+				} else if ("Magazine".equals(typeString)) {
+					type1 = 1;
+				} else if ("Thesis".equals(typeString)) {
+					type1 = 2;
+				}
+				b.setType(type1);
+
+				String[] taglist = Security.sanitize(request.getParameter("updated_tags")).split(",");
+
+				for (int i = 0; i < taglist.length; i++) {
+					Tags t = new Tags();
+					t.setTag(taglist[i]);
+					TagsService tagsservice = new TagsService();
+					tagsservice.addTag(t);
+				}
+
+				BooksService.updateBook(b);
+
+				response.sendRedirect("home");
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+
+			}
+			break;
+		case "/delete_book":
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
+
+				int idBook = Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)));
+				BooksService.deleteBook(idBook);
+				request.getRequestDispatcher("home").forward(request, response);
+
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+
+			}
+			break;
+
+		case "/add_admins_page":
+			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
+				request.getRequestDispatcher("AdminAccountCreation.jsp").forward(request, response);
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+			}
+			break;
+		case "/unlock_users_page":
+			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
+
+				request.setAttribute("lockedusers", UserService.getAllUsersByStatus(1));
+				request.getRequestDispatcher("UnlockUsers.jsp").forward(request, response);
+
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+			}
+			break;
+		case "/unlock_users":
+			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
+				try {
+					User lockedu = UserService
+							.getUserByID(Integer.parseInt(Security.sanitize(request.getParameter("idUser"))));
+					UserService.updateStatus(lockedu.getIdUser(), lockedu.getStatus());
+					request.getRequestDispatcher("UnlockedUsersSuccess.jsp").forward(request, response);
+				} catch (Exception e) {
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Unlocking Account Failed");
+					;
+				}
+
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+			}
+
+			break;
+		case "/add_admins":
+
+			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
+
+				try {
+
+					User u = new User();
+
+					u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+					u.setEmail(request.getParameter("email"));
+					u.setFirstName(Security.sanitize(request.getParameter("firstname")));
+					u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+					u.setLastName(Security.sanitize(request.getParameter("lastname")));
+					int access = User.STUDENT;
+					String accessString = Security.sanitize(request.getParameter("access_level"));
+					switch (accessString) {
+					case "Library Manager":
+						access = User.MANAGER;
+						break;
+					case "Library Staff":
+						access = User.STAFF;
+						break;
+
+					case "Library Student Assistant":
+						access = User.ASSISTANT;
+						break;
+					default:
+						access = User.STUDENT;
+					}
+
+					u.setAccessLevel(access);
+					String birthdate = Security.sanitize(request.getParameter("birthdate"));
+					String[] dates = birthdate.split("/");
+					int month = Integer.parseInt(dates[0]);
+					int day = Integer.parseInt(dates[1]);
+					int year = Integer.parseInt(dates[2]);
+					u.setBirthdate(new GregorianCalendar(year, month, day));
+					u.setCreateTime(new GregorianCalendar());
+					u.setLastLogin(new GregorianCalendar());
+					u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
+					String unAnswer = request.getParameter("secret_answer");
+					u.setSecretAnswer(Security.createHash(unAnswer));
+					u.setUserName(Security.sanitize(request.getParameter("username")));
+
+					String unhashed = request.getParameter("password");
+
+					u.setPassword(Security.createHash(unhashed));
+
+					if (UserService.validateUser(u)) {
+						UserService.addUser(u);
+						UserService.unlockUser(u.getIdUser());
+						response.sendRedirect("home");
+					} else {
+						response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
+					}
+
+				} catch (NoSuchAlgorithmException e) {
+					e.printStackTrace();
+
+				} catch (InvalidKeySpecException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed");
+					;
+				}
+
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+			}
+			break;
+		case "/search_room":
+
+			if (Security.sanitize(request.getParameter("start")) != "")
+				Integer.parseInt(Security.sanitize(request.getParameter("start")));
+			if (Security.sanitize(request.getParameter("end")) != "")
+				Integer.parseInt(Security.sanitize(request.getParameter("end")));
+
+			request.setAttribute("rooms", RoomsServices.getAllRooms());
+			request.getRequestDispatcher("RoomSearch.jsp").forward(request, response);
+			break;
+		case "/get_room":
+
+			if (Security.sanitize(request.getParameter("start")) != "")
+				Integer.parseInt(Security.sanitize(request.getParameter("start")));
+			if (Security.sanitize(request.getParameter("end")) != "")
+				Integer.parseInt(Security.sanitize(request.getParameter("end")));
+			request.setAttribute("room",
+					RoomsServices.getRoomById(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
+			request.setAttribute("roomslots", RoomSlotService
+					.getRoomSlotByRoom(Integer.parseInt(Security.sanitize(request.getParameter("idRooms")))));
+			request.getRequestDispatcher("RoomDetails.jsp").forward(request, response);
+			break;
+		case "/room_reserve":
+			RoomSlot roomreserve = RoomSlotService
+					.getRoomSlotById(Integer.parseInt(Security.sanitize(request.getParameter("idRoomSlot"))));
+			RoomReservation roomreservation = new RoomReservation();
+			roomreservation.setIdRoom(roomreserve.getIdRoom());
+			roomreservation.setIdUser((int) request.getAttribute("loggedin"));
+			roomreservation.setStartTime(roomreserve.getStart_time());
+			roomreservation.setEndTime(roomreserve.getEnd_time());
+			request.getRequestDispatcher("ReservationSuccess.jsp").forward(request, response);
+			int rrid = RoomReservationService.addRoomReservation(roomreservation);
+			roomreservation.setIdRoomReservation(rrid);
+			RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), RoomSlot.RESERVED);
+			break;
+
+		case "/new_user":
+			// TODO Auto-generated method stub
+
+			try {
+
+				User u = new User();
+
+				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+				u.setEmail(request.getParameter("email"));
+				u.setFirstName(Security.sanitize(request.getParameter("firstname")));
+				u.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+				u.setLastName(Security.sanitize(request.getParameter("lastname")));
+				int access = 0;
+				String accessString = Security.sanitize(request.getParameter("access_level"));
+				if ("Faculty".equals(accessString)) {
+					access = 1;
+				}
+				u.setAccessLevel(access);
+				String birthdate = Security.sanitize(Security.sanitize(request.getParameter("birthdate")));
+				String[] dates = birthdate.split("/");
+				int month = Integer.parseInt(dates[0]);
+				int day = Integer.parseInt(dates[1]);
+				int year = Integer.parseInt(dates[2]);
+				u.setBirthdate(new GregorianCalendar(year, month, day));
+				u.setCreateTime(new GregorianCalendar());
+				u.setLastLogin(new GregorianCalendar());
+				u.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
+				String unAnswer = request.getParameter("secret_answer");
+				u.setSecretAnswer(Security.createHash(unAnswer));
+				u.setUserName(Security.sanitize(request.getParameter("username")));
+
+				String unhashed = request.getParameter("password");
+
+				u.setPassword(Security.createHash(unhashed));
+				if (UserService.validateUser(u)) {
+					UserService.addUser(u);
+					response.sendRedirect("home");
+				} else {
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
+				}
+
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+
+			} catch (InvalidKeySpecException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed.");
+				;
+			}
+
+			break;
+		case "/change_pass":
+			try {
+
+				if (user != null) {
+					String oldpass = request.getParameter("oldpassword");
+					String newpass = request.getParameter("newpassword");
+					int id = user.getIdUser();
+
+					UserService.changePassword(oldpass, newpass, id);
+					request.getRequestDispatcher("PasswordSuccess.jsp").forward(request, response);
+
+				} else {
+					response.sendRedirect("home");
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Changing Password Failed.");
+				;
+			}
+
+			break;
+
+		case "/home":
+		default:
+			if (user != null) {
+				request.setAttribute("access", user.getAccessLevel());
+			}
+			request.getRequestDispatcher("index.jsp").forward(request, response);
+
+		}
+
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}

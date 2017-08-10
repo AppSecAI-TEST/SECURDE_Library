@@ -11,19 +11,17 @@ import db.DBPool;
 import models.Books;
 
 public class BooksService {
-	
-	public void addBook(Books b){
+
+	public static int addBook(Books b){
+		int id=-1;
 		String sql ="INSERT INTO " + Books.TABLE_NAME + " (" 
-				+ Books.COLUMN_IDBOOK + ", "
 				+ Books.COLUMN_TITLE + ", "
 				+ Books.COLUMN_AUTHOR + ", "
 				+ Books.COLUMN_PUBLISHER + ", "
 				+ Books.COLUMN_YEAR + ", "
-				+ Books.COLUMN_STATUS + ", "
 				+ Books.COLUMN_LOCATION + ", "
-				+ Books.COLUMN_TYPE + ", "
-				+ Books.COLUMN_CREATETIME + ") "
-				+ " VALUES (?,?,?,?,?,?,?,?,?);";
+				+ Books.COLUMN_TYPE + " ) "
+				+ " VALUES (?,?,?,?,?,?);";
 				
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -32,18 +30,34 @@ public class BooksService {
 		
 		try {
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, b.getIdBooks());
-			pstmt.setString(2, b.getTitle());
-			pstmt.setString(3, b.getAuthor());
-			pstmt.setString(4, b.getPublisher());
-			pstmt.setInt(5, b.getYear());
-			pstmt.setInt(6, b.getStatus());
-			pstmt.setDouble(7, b.getLocation());
-			pstmt.setInt(8, b.getType());
-		    java.sql.Date creation = new java.sql.Date(new Date().getTime());
-			pstmt.setDate(9,creation);
+			pstmt.setString(1, b.getTitle());
+			pstmt.setString(2, b.getAuthor());
+			pstmt.setString(3, b.getPublisher());
+			pstmt.setInt(4, b.getYear());
+			pstmt.setDouble(5, b.getLocation());
+			pstmt.setInt(6, b.getType());
 			
 			pstmt.executeUpdate();
+			pstmt.close();
+			
+			String sel ="SELECT "+Books.COLUMN_IDBOOK+" FROM "+Books.TABLE_NAME+" WHERE "
+					+ Books.COLUMN_TITLE + " =? AND "
+					+ Books.COLUMN_AUTHOR + " =? AND "
+					+ Books.COLUMN_YEAR + " =? AND "
+					+ Books.COLUMN_LOCATION	+ " =?";
+			
+			pstmt = conn.prepareStatement(sel);
+			pstmt.setString(1, b.getTitle());
+			pstmt.setString(2, b.getAuthor());
+			pstmt.setInt(3, b.getYear());
+			pstmt.setDouble(4, b.getLocation());
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()){
+				id = rs.getInt(Books.COLUMN_IDBOOK);
+				
+			}
+		
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -58,9 +72,11 @@ public class BooksService {
 			}
 		}
 		
+		return id;
+		
 	}
 	
-	public void deleteBook(int idBook){
+	public static void deleteBook(int idBook){
 		String sql = "DELETE FROM " + Books.TABLE_NAME + " WHERE "
 				 + Books.COLUMN_IDBOOK + " = ?;";
 		
@@ -86,7 +102,7 @@ public class BooksService {
 		
 	}
 	
-	public void updateBook(Books b){
+	public static void updateBook(Books b){
 		// UPDATE person SET name=?, gender=?, age=? where idNum=?
 		
 		String sql = "UPDATE " + Books.TABLE_NAME + " SET "
@@ -130,7 +146,7 @@ public class BooksService {
 		
 	}
 	
-	public ArrayList<Books> getAllBooks(){
+	public static ArrayList<Books> getAllBooks(){
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME;
@@ -158,12 +174,20 @@ public class BooksService {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return books;
 	}
 
-	public Books getBookById(int id){
+	public static Books getBookById(int id){
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE " + Books.COLUMN_IDBOOK + "=?;";
 
 		Books b = new Books();
@@ -189,20 +213,28 @@ public class BooksService {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return b;
 		
 	}
 
-	public ArrayList<Books> getBooksBySearch(String keyword){
+	public static ArrayList<Books> getBooksBySearch(String keyword){
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE "
-				+ Books.COLUMN_TITLE + " =? OR "
-				+ Books.COLUMN_AUTHOR + " =? OR "
-				+ Books.COLUMN_PUBLISHER + " =? OR "
-				+ Books.COLUMN_YEAR	+ " =?;";
+				+ Books.COLUMN_TITLE + " LIKE ? OR "
+				+ Books.COLUMN_AUTHOR + " LIKE ? OR "
+				+ Books.COLUMN_PUBLISHER + " LIKE ? OR "
+				+ Books.COLUMN_YEAR	+ " LIKE ?;";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		PreparedStatement pstmt = null;
@@ -214,7 +246,7 @@ public class BooksService {
 			pstmt.setString(2, "%"+keyword+"%");
 			pstmt.setString(3, "%"+keyword+"%");
 			pstmt.setString(4, "%"+keyword+"%");
-			
+			System.out.println(pstmt.toString());
 			rs = pstmt.executeQuery();
 			while(rs.next()){
 				Books b = new Books();
@@ -231,20 +263,28 @@ public class BooksService {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return books;
 	}	
 
-	public ArrayList<Books> getBooksByAdvancedSearch(String title, String author, String publisher, int year, int type){
+	public static ArrayList<Books> getBooksByAdvancedSearch(String title, String author, String publisher, int year, int type){
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE "
-				+ Books.COLUMN_TITLE + " =? AND "
-				+ Books.COLUMN_AUTHOR + " =? AND "
-				+ Books.COLUMN_PUBLISHER + " =? AND "
-				+ Books.COLUMN_TYPE + " =? AND "
-				+ Books.COLUMN_YEAR	+ " =?;";
+				+ Books.COLUMN_TITLE + " LIKE ? AND "
+				+ Books.COLUMN_AUTHOR + " LIKE ? AND "
+				+ Books.COLUMN_PUBLISHER + " LIKE ? AND "
+				+ Books.COLUMN_TYPE + " LIKE ? AND "
+				+ Books.COLUMN_YEAR	+ " LIKE ?;";
 		
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -288,6 +328,14 @@ public class BooksService {
 			}
 		}catch (SQLException e){
 			e.printStackTrace();
+		}finally{
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return books;

@@ -1,54 +1,76 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
+	pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Insert title here</title>
-<jsp:include page="components/headers.jsp"/>
+<jsp:include page="components/headers.jsp" />
 </head>
 <body>
 
-<jsp:include page="components/navbar.jsp"/>
+	<jsp:include page="components/navbar.jsp" />
 
 	<div class="container">
-    	<h1 class="well">Reservation Form</h1>
-		<div class="col-lg-12 well">
-		<div class="row">
-			<form>
-					<div class="col-sm-12">
-						<div class="row">
-							<div class="col-sm-6 form-group">
-								<label><h4>Book Title Here</h4></label>
+		<div class="card col-md-9 col-md-offset-2">
+			<div class="card-block card-space">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-9">
+							<div class="thumbnail">
+								<div class="caption">
+									<div class="btn-group cart pull-right"></div>
+									<h4>${book.title}</h4>
+									<h5>Author: ${book.author}</h5>
+									<h5>Publisher: ${book.publisher}</h5>
+									<h6>Year Published: ${book.year}</h6>
+									<h6>
+										Type:
+										<c:choose>
+											<c:when test="${book.type==0}">
+												Book
+											</c:when>
+											<c:when test="${book.type==1}">
+												Magazine
+											</c:when>
+											<c:when test="${book.type==2}">
+												Thesis
+											</c:when>
+											<c:otherwise>
+												Unknown
+											</c:otherwise>
+										</c:choose>
+
+									</h6>
+								</div>
+								<div class="caption">
+									<p>
+										Status:
+										<c:choose>
+											<c:when test="${book.status==0}">
+												Available
+											</c:when>
+											<c:otherwise>
+												Reserved
+											</c:otherwise>
+										</c:choose>
+									</p>
+									<p>
+										Deadline:
+										<fmt:formatDate value="${reservation.deadline.time}"
+											type="date" dateStyle="short" />
+									</p>
+								</div>
 							</div>
-							<div class="col-sm-6 form-group">
-								<label>Author Here</label><br>
-								<label>Publisher Here</label><br>
-								<label>Published Year</label>
-							</div>
-						</div>					
-						<div class="form-group">
-							<label><h6>Book Description Here Hi hello</h6></label>
-						</div>	
-						<div class="row">
-							<div class="col-sm-4 form-group">
-								<label><h6>Reserved Date:</h6></label>
-							</div>	
-							<div class="col-sm-4 form-group" style="color: red">
-								<label><h5>Return by "date here"</h5></label>
-							</div>			
 						</div>
-						
-						<button type="submit" class="btn btn-success pull-right">
-						Reserve</button>
-						<button type="submit" class="btn btn-danger pull-right" style="margin-right:15px;"> 
-						Cancel </button>
-						</div>
-						
-				</form> 
+					</div>
 				</div>
+			</div>
+		</div>
 	</div>
-	</div>
+
 </body>
 
 </html>

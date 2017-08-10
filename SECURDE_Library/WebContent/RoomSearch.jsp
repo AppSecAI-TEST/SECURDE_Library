@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
+	<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,7 @@
 
 <title>DLSU-LIB : Room Reservations</title>
 
-	<jsp:include page="components/headers.jsp" />
+<jsp:include page="components/headers.jsp" />
 
 
 </head>
@@ -40,60 +41,18 @@
 
 	<jsp:include page="components/navbar.jsp" />
 
-	<div class="col-md-10 col-md-offset-1">
-		<div id="searchRooms" class="col-md-3">
-
-			<form id="searchForm" method="post" class="form-horizontal">
-
-				<div class="form-group col-md-12">
-					<label>Date</label>
-					<div>
-						<div class="input-group input-append date" id="datePicker">
-							<input type="text" class="form-control" name="date" /> <span
-								class="input-group-addon add-on"><span
-								class="glyphicon glyphicon-calendar"></span></span>
-						</div>
-					</div>
-				</div>
-				<div class="form-group col-md-12">
-					<label>Start Time (0000-2359)</label>
-					<div>
-						<input type="text" class="form-control" name="name" />
-					</div>
-				</div>
-				<div class="form-group col-md-12">
-					<label>End Time (0000-2359)</label>
-					<div>
-						<input type="text" class="form-control" name="name" />
-					</div>
-				</div>
-				<div class="form-group col-md-12">
-					<label>Floor</label>
-					<div>
-						<select class="selectpicker col-xs-12">
-							<option>All</option>
-							<option>7th Floor</option>
-							<option>8th Floor</option>
-							<option>9th Floor</option>
-							<option>10th Floor</option>
-							<option>11th Floor</option>
-							<option>12th Floor</option>
-						</select>
-					</div>
-				</div>
-
-				<button type="submit"
-					class="btn btn-success col-md-4 col-md-offset-4">Search</button>
-			</form>
-		</div>
-
-		<div id="results" class="col-md-8 clearfix">
+		<div id="results" class="col-md-10 col-md-offset-2 clearfix">
 			<div>
 				<h2>Room Reservation > Results</h2>
 				<div class="list-group">
-					<a href="#" class="list-group-item">Meeting Room 1</a>
-					<a href="#" class="list-group-item">Meeting Room 2</a>
-					<a href="#"	class="list-group-item">Thesis Room 1</a>
+
+					<c:forEach items="${rooms}" var="room">
+						<form action="get_room" method="get">
+							<input type="text" class="invisible" value="${room.idRooms}"
+								name="idRooms"/>
+							<button type="submit">${room.name}</button>
+						</form>
+					</c:forEach>
 				</div>
 			</div>
 		</div>

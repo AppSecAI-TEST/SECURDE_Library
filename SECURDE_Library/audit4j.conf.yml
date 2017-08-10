@@ -1,0 +1,10 @@
+!Configuration
+released: 2014-08-29T12:40:21.077Z
+version: 2.2.0
+handlers:
+- !org.audit4j.core.handler.ConsoleAuditHandler {}
+- !org.audit4j.core.handler.file.FileAuditHandler {}
+layout: !org.audit4j.core.layout.SimpleLayout {}
+metaData: !org.audit4j.core.DummyMetaData {}
+properties:
+   log.file.location: user.dir
