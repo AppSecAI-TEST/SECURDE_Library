@@ -21,6 +21,13 @@ public class User implements Serializable{
 	public final static String COLUMN_STATUS = "status";
 	public final static String COLUMN_ATTEMPT = "attempt";
 	
+
+	public final static int STUDENT = 0;
+	public final static int FACULTY = 1;
+	public final static int MANAGER = 2;
+	public final static int STAFF = 3;
+	public final static int ADMINISTRATOR = 4;
+	
 	private String firstName, middleName, lastName;
 	private int idUser;
 	private String userName;
