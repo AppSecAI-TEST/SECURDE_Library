@@ -3,6 +3,7 @@ package servlets;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -43,6 +44,7 @@ public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	final static Logger logger = Logger.getLogger(Controller.class);
+	final static Logger booklogger = Logger.getLogger(BooksService.class);
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -70,6 +72,15 @@ public class Controller extends HttpServlet {
 		}
 		String servletPath = request.getServletPath(); // returns either /add,
 														// /toggle, /main
+
+		String user_info;
+
+		if (user == null) {
+			user_info = "[ANONYMOUS USER]";
+		} else {
+			user_info = "[" + user.getIdUser() + " | " + user.getAccesString() + "] " + user.getUserName();
+		}
+
 		switch (servletPath) {
 
 		case "/logout":
@@ -81,17 +92,18 @@ public class Controller extends HttpServlet {
 					for (int i = 0; i < cookielist.length; i++) {
 						c = cookielist[i];
 						if (c.getName().equals(Security.COOKIE_NAME)) {
-							System.out.println("STOPLOG");
 							c.setMaxAge(0);
 							response.addCookie(c);
 						}
 						;
 					}
 
+				logger.info(user_info + " logged out.");
 				request.setAttribute("loggedin", -1);
 				response.sendRedirect("LoggedOut.jsp");
 
 			} else {
+				logger.info("Attempted logout by " + user_info);
 				response.sendRedirect("home");
 			}
 			break;
@@ -133,7 +145,6 @@ public class Controller extends HttpServlet {
 					if (id != -1) {
 						request.setAttribute("loggedin", id);
 						User u = UserService.getUserByID(id);
-						System.out.println(request.getAttribute("loggedin"));
 						Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt() + ":" + id + "");
 						c.setMaxAge(60 * 60 * 1);
 
@@ -151,6 +162,7 @@ public class Controller extends HttpServlet {
 				} catch (custom_errors.LockoutException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					logger.warn("Locked out user : " + user_info + " attempted log in.");
 					response.sendError(HttpServletResponse.SC_FORBIDDEN,
 							"User has exceeded allowable login attempts. Please contact the administrator.");
 				}
@@ -169,34 +181,56 @@ public class Controller extends HttpServlet {
 			break;
 
 		case "/book_reserve":
-			Books bookreserve = BooksService
-					.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
-			BookReservation bookreservation = new BookReservation();
-			bookreservation.setIdBook(bookreserve.getIdBooks());
-			bookreservation.setIdUser((int) request.getAttribute("loggedin"));
-			long deadline = BookReservationService.addBookReservation(bookreservation);
-			GregorianCalendar c = new GregorianCalendar();
-			c.setTimeInMillis(deadline);
-			bookreservation.setDeadline(c);
-			bookreserve.setStatus(Books.RESERVED);
-			BooksService.updateBook(bookreserve);
-			request.setAttribute("reservation", bookreservation);
-			request.setAttribute("book", bookreserve);
-			request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
+			if (user != null) {
+				Books bookreserve = BooksService
+						.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
+				BookReservation bookreservation = new BookReservation();
+				bookreservation.setIdBook(bookreserve.getIdBooks());
+				bookreservation.setIdUser(user.getIdUser());
+				long deadline = BookReservationService.addBookReservation(bookreservation);
+				GregorianCalendar c = new GregorianCalendar();
+				c.setTimeInMillis(deadline);
+				bookreservation.setDeadline(c);
+				bookreserve.setStatus(Books.RESERVED);
+				try {
+					BooksService.updateBook(bookreserve);
+					request.setAttribute("reservation", bookreservation);
+					request.setAttribute("book", bookreserve);
+					logger.info(
+							user_info + " reserved book [" + bookreserve.getIdBooks() + "] " + bookreserve.getTitle());
+					request.getRequestDispatcher("ReserveBook.jsp").forward(request, response);
+
+				} catch (SQLException e) {
+
+					booklogger
+							.error("DATABASE FAILURE: " + user_info + " attempted to reserve book [" + bookreserve.getTitle() + "]");
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					e.printStackTrace();
+				}
+			} else {
+				logger.warn(user_info + " attempted book reservation.");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User is not logged in.");
+			}
 			break;
 
 		case "/search_book":
 			response.getWriter().append("Served at: ").append(request.getContextPath());
 			List<Books> booklist = new ArrayList<Books>();
 
-			if (Security.sanitize(request.getParameter("keyword")) == null
-					|| "".equals(Security.sanitize(request.getParameter("keyword")))) {
-				booklist = BooksService.getAllBooks();
-			} else {
-				System.out.println(Security.sanitize(request.getParameter("keyword")));
-				booklist = BooksService.getBooksBySearch(request.getParameter("keyword"));
-			}
+			try {
+				if (Security.sanitize(request.getParameter("keyword")) == null
+						|| "".equals(Security.sanitize(request.getParameter("keyword")))) {
+					booklist = BooksService.getAllBooks();
+				} else {
+					booklist = BooksService.getBooksBySearch(request.getParameter("keyword"));
 
+				}
+			} catch (SQLException e) {
+				booklogger.error("DATABASE FAILURE: " + user_info + " attempt at retrieving books. Keyword : ["
+						+ Security.sanitize(request.getParameter("keyword")) + "]");
+				e.printStackTrace();
+			}
 			request.setAttribute("booklist", booklist);
 			request.getRequestDispatcher("BorrowBooks.jsp").forward(request, response);
 			break;
@@ -204,7 +238,8 @@ public class Controller extends HttpServlet {
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 				request.getRequestDispatcher("AdminAddBook.jsp").forward(request, response);
 			} else {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+				logger.warn(user_info + " attempted to access add book page without proper access level.");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
 			}
 			break;
 		case "/addbook":
@@ -230,22 +265,33 @@ public class Controller extends HttpServlet {
 				}
 				b.setType(type1);
 
-				int bookid = BooksService.addBook(b);
-				String[] taglist = Security.sanitize(request.getParameter("tags")).split(",");
+				int bookid;
+				try {
+					bookid = BooksService.addBook(b);
 
-				for (int i = 0; i < taglist.length; i++) {
-					Tags t = new Tags();
-					t.setBookid(bookid);
-					t.setTag(taglist[i]);
-					TagsService tagsservice = new TagsService();
-					tagsservice.addTag(t);
+					String[] taglist = Security.sanitize(request.getParameter("tags")).split(",");
+
+					for (int i = 0; i < taglist.length; i++) {
+						Tags t = new Tags();
+						t.setBookid(bookid);
+						t.setTag(taglist[i]);
+						TagsService tagsservice = new TagsService();
+						tagsservice.addTag(t);
+					}
+
+					request.setAttribute(Books.COLUMN_IDBOOK, bookid);
+					booklogger.info("[" + bookid + "] " + b.getTitle() + " added by " + user_info);
+					request.getRequestDispatcher("book_detail").forward(request, response);
+
+				} catch (SQLException e) {
+					booklogger
+							.error("DATABASE FAILURE: " + user_info + " attempted to add book [" + b.getTitle() + "]");
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				}
-
-				request.setAttribute(Books.COLUMN_IDBOOK, bookid);
-				request.getRequestDispatcher("book_detail").forward(request, response);
-				;
 			} else {
-				response.sendRedirect("home");
+
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
 			}
 			break;
 		case "/edit_book":
@@ -260,10 +306,14 @@ public class Controller extends HttpServlet {
 
 				request.getRequestDispatcher("AdminEditBook.jsp").forward(request, response);
 			} else {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+
+				logger.warn(user_info + " attempted to edit book ["
+						+ Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)) + "]");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
 
 			}
 			break;
+		// here
 		case "/update_book":
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
@@ -296,12 +346,22 @@ public class Controller extends HttpServlet {
 					tagsservice.addTag(t);
 				}
 
-				BooksService.updateBook(b);
+				try {
+					BooksService.updateBook(b);
+					booklogger.info(user_info + " edited book [" + b.getIdBooks() + "] " + b.getTitle());
+					response.sendRedirect("home");
+				} catch (SQLException e) {
 
-				response.sendRedirect("home");
+					booklogger
+							.error("DATABASE FAILURE: " + user_info + " attempted to add book [" + b.getTitle() + "]");
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				}
+
 			} else {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
-
+				logger.warn(user_info + " attempted to edit book ["
+						+ Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK)) + "]");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
 			}
 			break;
 		case "/delete_book":

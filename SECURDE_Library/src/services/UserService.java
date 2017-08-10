@@ -476,7 +476,6 @@ public class UserService {
 		try {
 			pstmt = conn.prepareStatement(sql);
 			
-			System.out.println("STATUS " + status);
 			if(status==1){
 				pstmt.setInt(1, 0);
 			}	
@@ -485,7 +484,6 @@ public class UserService {
 				unlockUser(id);
 			}
 				
-			System.out.println("STATUS2 " + status);
 			pstmt.executeUpdate();
 
 		} catch (SQLException e) {
@@ -546,7 +544,7 @@ public class UserService {
 		try {
 			attempt++;
 
-			logger.warn("Failed login attempt #"+attempt+" on user ["+id+"] "+getUserNameById(id));
+			logger.warn("["+id+"] "+getUserNameById(id)+ " Failed login attempt. Attempt #"+attempt);
 			
 			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_ATTEMPT + " =? " + " WHERE "
 					+ User.COLUMN_IDNUM + " =?;";
@@ -604,7 +602,7 @@ public class UserService {
 		if (id != -1) {
 
 
-			logger.info("["+id+"]"+username+"attempting to log in.");
+			logger.info("["+id+"] "+username+" attempting to log in.");
 			User u = getUserByID(id);
 			
 			if(u.getAttempt() < 3){

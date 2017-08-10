@@ -7,12 +7,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import db.DBPool;
 import models.Books;
 
 public class BooksService {
 
-	public static int addBook(Books b){
+	final static Logger logger = Logger.getLogger(BooksService.class);
+	
+	public static int addBook(Books b) throws SQLException{
 		int id=-1;
 		String sql ="INSERT INTO " + Books.TABLE_NAME + " (" 
 				+ Books.COLUMN_TITLE + ", "
@@ -58,11 +62,7 @@ public class BooksService {
 				
 			}
 		
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}finally{
+		} finally{
 			try {
 				pstmt.close();
 				conn.close();
@@ -102,7 +102,7 @@ public class BooksService {
 		
 	}
 	
-	public static void updateBook(Books b){
+	public static void updateBook(Books b) throws SQLException{
 		// UPDATE person SET name=?, gender=?, age=? where idNum=?
 		
 		String sql = "UPDATE " + Books.TABLE_NAME + " SET "
@@ -130,9 +130,6 @@ public class BooksService {
 			pstmt.setInt(8, b.getIdBooks());
 			pstmt.executeUpdate();
 			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally{
 			try {
 				pstmt.close();
@@ -146,7 +143,7 @@ public class BooksService {
 		
 	}
 	
-	public static ArrayList<Books> getAllBooks(){
+	public static ArrayList<Books> getAllBooks() throws SQLException{
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME;
@@ -172,8 +169,8 @@ public class BooksService {
 				
 				books.add(b);
 			}
-		}catch (SQLException e){
-			e.printStackTrace();
+			
+			logger.info("All books retrieved.");
 		}finally{
 			try {
 				pstmt.close();
@@ -227,7 +224,7 @@ public class BooksService {
 		
 	}
 
-	public static ArrayList<Books> getBooksBySearch(String keyword){
+	public static ArrayList<Books> getBooksBySearch(String keyword) throws SQLException{
 		ArrayList<Books> books = new ArrayList<Books>();
 		
 		String sql = "Select * from " + Books.TABLE_NAME + " WHERE "
@@ -261,8 +258,8 @@ public class BooksService {
 				
 				books.add(b);
 			}
-		}catch (SQLException e){
-			e.printStackTrace();
+			
+			logger.info("Books searched with keyword/s : "+keyword);
 		}finally{
 			try {
 				pstmt.close();
