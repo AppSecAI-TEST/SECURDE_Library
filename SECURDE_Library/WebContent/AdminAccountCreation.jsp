@@ -177,34 +177,6 @@ $(document).ready(function() {
 					 <div class="col-sm-12" id="email-error" style="font-weight:bold;padding:6px 12px;color:red;">
 			</div>
 			</div>
-			<div class="form-group">
-				<label for="pwd">Password:</label> <input type="password"
-					class="form-control" id="pwd" name="password">
-					 <div class="col-sm-12" id="pwd-error" style="font-weight:bold;padding:6px 12px;color:red;">
-			</div>
-			</div>
-						<div class="form-group">
-				<label for="pwd">Password Strength:</label> <div class="col-sm-6" id="example-text-hierarchy-text" style="font-weight:bold;padding:6px 12px;">
-			</div>
-			</div>
- 
-			<p id="password-error"></p>
-			<div class="form-group">
-				<label for="cpwd">Confirm Password:</label> <input type="password"
-					class="form-control" id="cpwd">
-					 <div class="col-sm-12" id="cpwd-error" style="font-weight:bold;padding:6px 12px;color:red;">
-			</div>
-			</div>
-			<div class="form-group">
-				<label for="question">Secret Question:</label> <input type="text"
-					class="form-control" id="question" name="secret_question">
-			</div>
-			<div class="form-group">
-				<label for="answer">Secret Answer:</label> <input type="password"
-					class="form-control" id="answer" name="secret_answer">
-			</div>
-			 <div class="col-sm-12" id="gen-error" style="font-weight:bold;padding:6px 12px;color:red;">
-			</div>
 			<button type="button" id="cancel"
 				class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
 			<button type="button" id="confirm" class="btn btn-success col-md-4 btn-space">Done</button>

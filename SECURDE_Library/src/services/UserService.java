@@ -722,7 +722,33 @@ public class UserService {
 		}
 
 	}
+	
+	public static void updatePwStatus(int id) {
+		String sql = "UPDATE " + UnlockedUsers.TABLE_NAME + " SET " + UnlockedUsers.COLUMN_PWSTATUS + " =? " + " WHERE " + UnlockedUsers.COLUMN_IDUSER
+				+ " =?;";
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+		PreparedStatement pstmt = null;
 
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, 1);
+			pstmt.setInt(2, id);
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 	public static void unlockUser(int id) throws NoSuchAlgorithmException, InvalidKeySpecException, AddressException,
 			UnsupportedEncodingException, MessagingException {
 		// some unlocking functions

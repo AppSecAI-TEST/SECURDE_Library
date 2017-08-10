@@ -191,6 +191,7 @@ public class Controller extends HttpServlet {
 			request.setAttribute("book", bookdetail);
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
 				request.setAttribute("editable", true);
+				request.setAttribute("dropdown", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
 			break;
 
@@ -295,8 +296,7 @@ public class Controller extends HttpServlet {
 
 					request.setAttribute(Books.COLUMN_IDBOOK, bookid);
 					booklogger.info("[" + bookid + "] " + b.getTitle() + " added by " + user_info);
-					request.getRequestDispatcher("book_detail").forward(request, response);
-
+					response.sendRedirect("search_book");
 				} catch (SQLException e) {
 					booklogger
 							.error("DATABASE FAILURE: " + user_info + " attempted to add book [" + b.getTitle() + "]");
