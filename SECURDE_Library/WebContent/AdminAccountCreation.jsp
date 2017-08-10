@@ -179,11 +179,12 @@ $(document).ready(function() {
 			</div>
 			<button type="button" id="cancel"
 				class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
-			<button type="button" id="confirm" class="btn btn-success col-md-4 btn-space">Done</button>
+			<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#ReAuth">Done</button>
 		</form>
 	</div>
 
 
+	<jsp:include page="components/reauth_modal.jsp" />
 
 </body>
 </html>
