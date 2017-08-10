@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -18,6 +19,7 @@ import javax.mail.internet.AddressException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 
+import custom_errors.ExpireException;
 import custom_errors.LockoutException;
 import custom_errors.PasswordMismatch;
 import db.DBPool;
@@ -514,6 +516,10 @@ public class UserService {
 			stat = "Unlocking";
 			logger.info(stat + " user [" + id + "] " + getUserNameById(id));
 			break;
+		case User.STATUS_TEMP:
+			stat = "Temporary password added to ";
+			logger.info(stat + " user [" + id + "] " + getUserNameById(id));
+			break;
 		default:
 			stat = "UNKNOWN STATUS CHANGE [ " + status + " ] to";
 			logger.warn(stat + " user [" + id + "] " + getUserNameById(id));
@@ -621,7 +627,7 @@ public class UserService {
 	}
 
 	public static int logInUser(String username, String password)
-			throws InvalidKeySpecException, NoSuchAlgorithmException, LockoutException {
+			throws InvalidKeySpecException, NoSuchAlgorithmException, LockoutException, ExpireException {
 		String sql = "SELECT " + User.COLUMN_IDNUM + " FROM " + User.TABLE_NAME + " WHERE " + User.COLUMN_USERNAME
 				+ " =?";
 		int id = -1;
@@ -655,7 +661,22 @@ public class UserService {
 
 			logger.info("[" + id + "] " + username + " attempting to log in.");
 			User u = getUserByID(id);
-			System.out.println(u.getStatus());
+
+			if(u.getStatus() == User.STATUS_TEMP){
+				UnlockedUsers unlock = UnlockedUserService.getUnlockedUserById(id);
+				if(unlock != null){
+					GregorianCalendar time = unlock.getCreateTime();
+					time.add(Calendar.DATE, 1);
+					
+					GregorianCalendar now = new GregorianCalendar();
+					
+					if(now.getTimeInMillis() <= time.getTimeInMillis()){
+						updateStatus(u.getIdUser(), User.STATUS_LOCKED);
+						throw new ExpireException();
+					}
+				}
+			}
+			
 			if (u.getStatus() != User.STATUS_LOCKED) {
 
 				if (Security.validatePassword(password, u.getPassword())) {

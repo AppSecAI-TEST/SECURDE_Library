@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import custom_errors.ExpireException;
 import custom_errors.PasswordMismatch;
 import models.BookReservation;
 import models.Books;
@@ -162,7 +163,10 @@ public class Controller extends HttpServlet {
 						User u = UserService.getUserByID(id);
 						Cookie c = new Cookie(Security.COOKIE_NAME, u.getSalt() + ":" + id + "");
 						c.setMaxAge(60 * 60 * 1);
-
+						
+						user_info = "[" + u.getIdUser() + " | " + u.getAccesString() + "] " + u.getUserName();
+						
+						
 						response.addCookie(c);
 						response.sendRedirect("home");
 
@@ -179,6 +183,12 @@ public class Controller extends HttpServlet {
 					logger.warn("Locked out user : " + user_info + " attempted log in.");
 					response.sendError(HttpServletResponse.SC_FORBIDDEN,
 							"User has exceeded allowable login attempts. Please contact the administrator.");
+				} catch (ExpireException e) {
+					// TODO Auto-generated catch block
+					logger.warn(user_info + "'s temporary password has expired.");
+					response.sendError(HttpServletResponse.SC_FORBIDDEN,
+							"Temporary unlocking of user has expired. Please contact the administrator.");
+			
 				}
 
 			} else {
