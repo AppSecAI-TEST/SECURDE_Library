@@ -24,9 +24,10 @@ public class User implements Serializable{
 
 	public final static int STUDENT = 0;
 	public final static int FACULTY = 1;
-	public final static int MANAGER = 2;
-	public final static int STAFF = 3;
-	public final static int ADMINISTRATOR = 4;
+	public final static int ASSISTANT = 2;
+	public final static int MANAGER = 3;
+	public final static int STAFF = 4;
+	public final static int ADMINISTRATOR = 5;
 	
 	private String firstName, middleName, lastName;
 	private int idUser;

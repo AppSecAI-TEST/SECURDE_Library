@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import custom_errors.LockoutException;
+import custom_errors.PasswordMismatch;
 import db.DBPool;
 import models.Books;
 import models.UnlockedUsers;
@@ -132,6 +133,7 @@ public class UserService {
 
 		try {
 			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, status);
 			rs = pstmt.executeQuery();
 			while (rs.next()) {
 				User u = new User();
@@ -278,6 +280,7 @@ public class UserService {
 				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
 				u.setUserName(rs.getString(User.COLUMN_USERNAME));
 				u.setPassword(rs.getString(User.COLUMN_PASS));
+				u.setStatus(rs.getInt(User.COLUMN_STATUS));
 				u.setAttempt(rs.getInt(User.COLUMN_ATTEMPT));
 
 			}
@@ -425,12 +428,16 @@ public class UserService {
 		try {
 			pstmt = conn.prepareStatement(sql);
 			
-		
-			if(status==1)
+			System.out.println("STATUS " + status);
+			if(status==1){
 				pstmt.setInt(1, 0);
-			else
+			}	
+			else{
 				pstmt.setInt(1, 1);
-			
+				unlockUser(id);
+			}
+				
+			System.out.println("STATUS2 " + status);
 			pstmt.executeUpdate();
 
 		} catch (SQLException e) {
@@ -480,28 +487,14 @@ public class UserService {
 	}
 	
 	public static void updateAttempt(int id) {
-		String sql = "SELECT " + User.COLUMN_ATTEMPT + " FROM " + User.TABLE_NAME + " WHERE "
-				+ User.COLUMN_IDNUM + " =?;";
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
 		int attempt=0;
 		PreparedStatement pstmt = null;
 		User u = getUserByID(id);
 		attempt = u.getAttempt();
-		System.out.println(u.getAttempt());
 		try {
-//			pstmt = conn.prepareStatement(sql);
-//			pstmt.setInt(1, id);
-//			ResultSet rs = pstmt.executeQuery();
-//			System.out.println(pstmt.toString());
-//			while(rs.next()){
-//				System.out.println(rs.getInt(User.COLUMN_ATTEMPT));
-//				attempt = rs.getInt(User.COLUMN_ATTEMPT);
-//			}
-			System.out.println("ATTEMPT-" + attempt);
-//			pstmt.close();
 			attempt++;
-			System.out.println("ATTEMPT2-" + attempt);
 			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_ATTEMPT + " =? " + " WHERE "
 					+ User.COLUMN_IDNUM + " =?;";
 			
@@ -576,6 +569,51 @@ public class UserService {
 		return id;
 	}
 	
+	public static void changePassword(String oldpass, String newpass, int id) throws PasswordMismatch{
+		
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+		String old; 
+		PreparedStatement pstmt = null;
+		User u = getUserByID(id);
+		old = u.getPassword();
+		
+		
+		
+		try {
+			if(Security.validatePassword(oldpass, old)){	
+				String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_PASS + " =? " + " WHERE "
+						+ User.COLUMN_IDNUM + " =?;";
+				
+				newpass = Security.createHash(newpass);
+				
+				pstmt = conn.prepareStatement(sel);
+				pstmt.setString(1,newpass);
+				pstmt.setInt(2, id);
+				pstmt.executeUpdate();
+			}else{
+				throw new PasswordMismatch();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		
+	}
 	public static void unlockUser(int id){
 		//some unlocking functions
 		String sql = "INSERT INTO "+UnlockedUsers.TABLE_NAME+" ("+UnlockedUsers.COLUMN_IDUSER+") VALUES (?);";
@@ -604,6 +642,7 @@ public class UserService {
 		}
 
 	}
+	
 	
 	public static boolean validateUser(User u){
 		

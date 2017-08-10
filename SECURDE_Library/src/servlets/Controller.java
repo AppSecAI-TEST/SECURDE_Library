@@ -34,7 +34,7 @@ import services.UserService;
  */
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve",
-		"/new_user", "/search_book","/delete_book", "/update_book", "/login" })
+		"/new_user", "/search_book","/delete_book", "/update_book", "/login", "/myaccount", "/change_pass", "/unlock_users_page", "/unlock_users" })
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -65,6 +65,14 @@ public class Controller extends HttpServlet {
 														// /toggle, /main
 
 		switch (servletPath) {
+		case "/myaccount":
+			if(user!=null){
+				request.getRequestDispatcher("MyAccount.jsp").forward(request, response);
+			}else{
+				response.sendRedirect("home");
+			}
+			break;
+		
 		case "/login_page":
 			request.getRequestDispatcher("LogIn.jsp").forward(request, response);
 			break;
@@ -272,6 +280,36 @@ public class Controller extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 			}
 			break;
+		case "/unlock_users_page":
+			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
+			
+				request.setAttribute("lockedusers", UserService.getAllUsersByStatus(1));
+				request.getRequestDispatcher("UnlockUsers.jsp").forward(request, response);
+				
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+			}
+			break;
+		case "/unlock_users":
+			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
+				try {
+					User lockedu = UserService
+						.getUserByID(Integer.parseInt(Security.sanitize(request.getParameter("idUser"))));
+					UserService.updateStatus(lockedu.getIdUser(), lockedu.getStatus());
+					request.getRequestDispatcher("UnlockedUsersSuccess.jsp").forward(request, response);
+				} catch(Exception e){
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Unlocking Account Failed");;
+				}
+				
+				
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+			}
+			
+			
+			
+			break;
 		case "/add_admins":
 			
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
@@ -294,6 +332,8 @@ public class Controller extends HttpServlet {
 					access = User.STAFF;
 					break;
 				case "Library Student Assistant":
+					access = User.ASSISTANT;
+					break;
 				default:
 					access = User.STUDENT;
 				}
@@ -379,7 +419,7 @@ public class Controller extends HttpServlet {
 			// TODO Auto-generated method stub
 
 			try {
-
+				
 				User u = new User();
 
 				u.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
@@ -424,6 +464,27 @@ public class Controller extends HttpServlet {
 			} catch(Exception e){
 				e.printStackTrace();
 				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed.");;
+			}
+
+			break;
+		case "/change_pass":
+			try {
+
+				if(user!=null){
+					String oldpass = request.getParameter("oldpassword");
+					String newpass = request.getParameter("newpassword");
+					int id = user.getIdUser();
+					
+					UserService.changePassword(oldpass, newpass, id);
+					request.getRequestDispatcher("PasswordSuccess.jsp").forward(request, response);
+					
+				}else{
+					response.sendRedirect("home");
+				}
+								
+			} catch(Exception e){
+				e.printStackTrace();
+				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Changing Password Failed.");;
 			}
 
 			break;
