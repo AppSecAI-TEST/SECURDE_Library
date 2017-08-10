@@ -191,7 +191,6 @@ public class Controller extends HttpServlet {
 			request.setAttribute("book", bookdetail);
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
 				request.setAttribute("editable", true);
-				request.setAttribute("dropdown", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
 			break;
 
@@ -350,6 +349,17 @@ public class Controller extends HttpServlet {
 					type1 = 2;
 				}
 				b.setType(type1);
+
+				String statusString = Security.sanitize(request.getParameter("updated_status"));
+				int status1 = 0;
+				if ("Available".equals(statusString)) {
+					status1 = 0;
+				} else if ("Reserved".equals(statusString)) {
+					status1 = 1;
+				} else if ("Out".equals(statusString)) {
+					status1 = 2;
+				}
+				b.setStatus(status1);
 
 				String[] taglist = Security.sanitize(request.getParameter("updated_tags")).split(",");
 

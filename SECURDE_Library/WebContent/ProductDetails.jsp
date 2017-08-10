@@ -35,23 +35,35 @@
 							<div class="caption">
 								<div class="btn-group cart pull-right margin card-space">
 									<c:if test="${loggedin != -1}">
-
-										<c:choose>
-											<c:when test="${book.status==0}">
-												<form action="book_reserve" method="post">
-													<input type="text" class="invisible"
-														value="${book.idBooks}" name="idBooks" />
-													<button type="submit" class="btn btn-success">Reserve
-													</button>
-
-												</form>
-											</c:when>
-											<c:otherwise>
-												<button type="button" class="btn btn-disabled">Unavailable
-												</button>
-											</c:otherwise>
-										</c:choose>
-										
+										<c:if test="${editable == null}">
+											<c:choose>
+											
+													<c:when test="${book.status==0}">
+													<form action="book_reserve" method="post">
+														<input type="text" class="invisible"
+															value="${book.idBooks}" name="idBooks" />
+														<button type="submit" class="btn btn-success">Reserve
+														</button>
+	
+													</form>
+													</c:when>
+													<c:when test="${book.status==1}">
+													<form action="book_reserve" method="post">
+														<input type="text" class="invisible"
+															value="${book.idBooks}" name="idBooks" />
+														<button type="submit" class="btn btn-disabled">Unavailable
+														</button>
+	
+													</form>
+													</c:when>
+													<c:otherwise>
+														<button type="button" class="btn btn-disabled">Out
+														</button>
+													</c:otherwise>
+												
+											</c:choose>
+										</c:if>
+									
 										<c:if test="${editable != null}">
 										<form action="edit_book" method="post">
 													<input type="text" class="invisible"

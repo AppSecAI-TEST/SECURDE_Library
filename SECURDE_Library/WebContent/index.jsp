@@ -51,7 +51,7 @@ ${firstname}
 
 					</c:when>
 					<c:otherwise>
-				<a class="btn btn-primary btn-lg" href="SignUp.html" role="button">Sign
+				<a class="btn btn-primary btn-lg" href="SignUp.jsp" role="button">Sign
 					Up &raquo;</a>				</c:otherwise></c:choose>
 			</p>
 		</div>
