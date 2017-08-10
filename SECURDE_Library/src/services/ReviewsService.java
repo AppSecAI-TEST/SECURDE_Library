@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import db.DBPool;
+import models.Books;
 import models.Reviews;
 
 public class ReviewsService {
 	
-	public void addReview(Reviews r){
+	public static int addReview(Reviews r) throws SQLException{
+		int id= -1;
 		String sql ="INSERT INTO " + Reviews.TABLE_NAME + " (" 
 				+ Reviews.COLUMN_REVIEW + ", "
 				+ Reviews.COLUMN_REVIEWID + ", "
@@ -37,12 +39,13 @@ public class ReviewsService {
 		    java.sql.Date creation = new java.sql.Date(new Date().getTime());
 			pstmt.setDate(6,creation);
 			
-			pstmt.executeUpdate();
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}finally{
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()){
+				id = rs.getInt(Reviews.COLUMN_REVIEWID);
+				
+			}
+		
+		} finally{
 			try {
 				pstmt.close();
 				conn.close();
@@ -52,6 +55,7 @@ public class ReviewsService {
 			}
 		}
 		
+		return id; 
 	}
 	
 	public ArrayList<Reviews> getReviewsByBook(int id){

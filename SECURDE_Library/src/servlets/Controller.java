@@ -24,6 +24,7 @@ import models.BookReservation;
 import models.Books;
 import models.RoomReservation;
 import models.RoomSlot;
+import models.Reviews;
 import models.Tags;
 import models.User;
 import security.Security;
@@ -32,6 +33,7 @@ import services.BooksService;
 import services.RoomReservationService;
 import services.RoomSlotService;
 import services.RoomsServices;
+import services.ReviewsService;
 import services.ServerService;
 import services.TagsService;
 import services.UserService;
@@ -51,7 +53,7 @@ public class Controller extends HttpServlet {
 
 	final static Logger logger = Logger.getLogger(Controller.class);
 	final static Logger booklogger = Logger.getLogger(BooksService.class);
-
+	final static Logger reviewlogger = Logger.getLogger(ReviewsService.class);
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -649,12 +651,45 @@ public class Controller extends HttpServlet {
 			break;
 
 		case "/home":
+		break;
+		case "/addReview":
+				if (user != null 
+				
+//				&& (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF ||
+//						 user.getAccessLevel() == User.ADMINISTRATOR || 
+//						 user.getAccessLevel() == User.STUDENT)
+				) {
+					Reviews r = new Reviews();
+
+					r.setReview(Security.sanitize(request.getParameter("review")));
+					r.setRating(4);
+					r.setCreateTime(new GregorianCalendar());
+					String typeString = Security.sanitize(request.getParameter("type"));
+					
+					int reviewid;
+					try {
+						reviewid = ReviewsService.addReview(r);
+
+						request.setAttribute(Reviews.COLUMN_REVIEWID, reviewid);
+						reviewlogger.info("[" + reviewid + "] " + r.getReview() + " added by " + user_info);
+						request.getRequestDispatcher("book_detail").forward(request, response);
+
+					} catch (SQLException e) {
+						reviewlogger
+								.error("DATABASE FAILURE: " + user_info + " attempted to add review[" + r.getReview() + "]");
+						e.printStackTrace();
+						response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					}
+				} else {
+
+					response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
+				}
+		break;
 		default:
 			if (user != null) {
 				request.setAttribute("access", user.getAccessLevel());
 			}
 			request.getRequestDispatcher("index.jsp").forward(request, response);
-
 		}
 
 	}
