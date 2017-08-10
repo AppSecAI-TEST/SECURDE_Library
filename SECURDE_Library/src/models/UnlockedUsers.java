@@ -7,11 +7,19 @@ public class UnlockedUsers {
 	public final static String	COLUMN_IDUSER			      	= "idUser"   			;
 	public final static String	COLUMN_PWSTATUS    				= "pw_status"    	 	;
 	public final static String 	COLUMN_CREATETIME  				= "create_time"  		;
+	public final static String COLUMN_IDUNLOCKEDUSERS			= "idUnlockedUsers"		;
 	
 	private int idUser;
 	private int pwStatus;
 	private GregorianCalendar createTime;
+	private int idUnlockedUsers;
 	
+	public int getIdUnlockedUsers() {
+		return idUnlockedUsers;
+	}
+	public void setIdUnlockedUsers(int idUnlockedUsers) {
+		this.idUnlockedUsers = idUnlockedUsers;
+	}
 	public UnlockedUsers() {
 		
 	}
