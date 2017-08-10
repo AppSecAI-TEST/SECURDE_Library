@@ -856,6 +856,7 @@ public class UserService {
 		return match;
 	}
 
+
 	public static boolean validateUser(User u) {
 
 		if (u.getFirstName() == "" || u.getLastName() == "" || u.getMiddleName() == "" || u.getUserName() == ""
