@@ -666,11 +666,11 @@ public class UserService {
 				UnlockedUsers unlock = UnlockedUserService.getUnlockedUserById(id);
 				if(unlock != null){
 					GregorianCalendar time = unlock.getCreateTime();
-					time.add(Calendar.DATE, 1);
-					
 					GregorianCalendar now = new GregorianCalendar();
 					
-					if(now.getTimeInMillis() <= time.getTimeInMillis()){
+					time.add(Calendar.DATE, 1);
+					
+					if(now.getTimeInMillis() >= time.getTimeInMillis()){
 						updateStatus(u.getIdUser(), User.STATUS_LOCKED);
 						throw new ExpireException();
 					}

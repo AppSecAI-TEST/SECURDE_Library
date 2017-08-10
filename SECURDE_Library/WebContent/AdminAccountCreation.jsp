@@ -46,17 +46,8 @@ $(document).ready(function() {
 	
 	$('#confirm').click(function() {
 		
-
-		var pass = $('#pwd').val();
-		var conPass = $('#cpwd').val();
-		var score = new Score(pass);
-
-		var scoreValue = score.calculateEntropyScore();
+		var reauth = $('#reauth-pass-modal').val();
 		
-		var a = /^(?=.*\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/.test(pass);
-		
-		var PasswordCheck = false;
-		var conPassCheck = false;
 		var dataCheck = false;
 		var emailCheck = false;
 		
@@ -70,27 +61,6 @@ $(document).ready(function() {
 
 			$('#email-error').text("Email address is not valid.");
 			emailCheck = false;
-		}
-		
-		if(pass.length < 8){
-			$('#pwd-error').text("Password should have at least 8 characters.");
-			PasswordCheck= false;
-		}else if(!a){
-			$('#pwd-error').text("Password should have at least 1 uppercase letter, lowercase letter, digit and special character.");
-			PasswordCheck= false;
-		}else if(scoreValue < 20){
-			$('#pwd-error').text("Password too weak. Try making a longer password.");
-			PasswordCheck= false;
-		}else{
-			$('#pwd-error').text("");	
-			PasswordCheck= true;
-		}	
-		if(conPass != pass){
-				$('#cpwd-error').text("Password does not match.");
-				conPassCheck = false;
-		}else{
-			$('#cpwd-error').text("");
-			conPassCheck = true;
 		}
 		
 		if($('#user_id').val()=="" ||
@@ -108,11 +78,11 @@ $(document).ready(function() {
 			dataCheck = true;
 		}
 		
-		if(PasswordCheck && conPassCheck && dataCheck && emailCheck){
+		if(dataCheck && emailCheck){
+
+			$('#reauth-pass').val(reauth);
 			$('#sign-in-form').submit();
 		}else{
-			console.log(PasswordCheck);
-			console.log(conPassCheck);
 			console.log(dataCheck);
 			console.log(emailCheck);
 		}
@@ -176,10 +146,21 @@ $(document).ready(function() {
 					class="form-control" id="email" name="email">
 					 <div class="col-sm-12" id="email-error" style="font-weight:bold;padding:6px 12px;color:red;">
 			</div>
+			
+			<div class="form-group">
+				<label for="question">Secret Question:</label> <input type="text"
+					class="form-control" id="question" name="secret_question">
+			</div>
+			<div class="form-group">
+				<label for="answer">Secret Answer:</label> <input type="password"
+					class="form-control" id="answer" name="secret_answer">
+			</div>
+			<input type="text" class="invisible" id="reauth-pass" name="reauth_pass"/>
+			
 			</div>
 			<button type="button" id="cancel"
 				class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
-			<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#ReAuth">Done</button>
+			<button type="button" class="btn btn-info col-md-4" data-toggle="modal" data-target="#ReAuth">Done</button>
 		</form>
 	</div>
 

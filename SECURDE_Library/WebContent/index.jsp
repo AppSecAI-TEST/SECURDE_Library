@@ -88,11 +88,11 @@ ${firstname}
 					<c:when test="${loggedin>-1}">
 
 		<c:choose>
-			<c:when test="${access==2}">
+			<c:when test="${access==3}">
 				<a href="addbookpage">Add New Book</a>
 				<a href="search_book">Book List</a>
 			</c:when>
-			<c:when test="${access==3}">
+			<c:when test="${access==4}">
 				<a href="addbookpage">Add New Book</a>
 				<a href="search_book">Book List</a>
 			</c:when>

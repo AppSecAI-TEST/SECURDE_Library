@@ -2,6 +2,7 @@ package servlets;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class Controller extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		String pass="";
 		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 		request.setAttribute("loggedin", ServerService.CheckLoggedIn(request, response));
@@ -269,7 +270,8 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/addbook":
-			String pass = request.getParameter("password");
+
+			pass = request.getParameter("reauth_pass");
 			try {
 				Security.validatePassword(pass, user.getPassword());
 			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
@@ -328,13 +330,13 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/edit_book":
-			pass = request.getParameter("password");
-			try {
-				Security.validatePassword(pass, user.getPassword());
-			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
+//			pass = request.getParameter("reauth_pass");
+//			try {
+//				Security.validatePassword(pass, user.getPassword());
+//			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+//				// TODO Auto-generated catch block
+//				e2.printStackTrace();
+//			}
 			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
@@ -356,14 +358,15 @@ public class Controller extends HttpServlet {
 			break;
 		// here
 		case "/update_book":
-			pass = request.getParameter("password");
-			try {
-				Security.validatePassword(pass, user.getPassword());
-			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			
+
+//			pass = request.getParameter("reauth_pass");
+//			try {
+//				Security.validatePassword(pass, user.getPassword());
+//			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+//				// TODO Auto-generated catch block
+//				e2.printStackTrace();
+//			}
+//			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
 
 				Books b = BooksService
@@ -425,7 +428,8 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/delete_book":
-			pass = request.getParameter("password");
+
+			pass = request.getParameter("reauth_pass");
 			try {
 				Security.validatePassword(pass, user.getPassword());
 			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
@@ -503,13 +507,14 @@ public class Controller extends HttpServlet {
 			}
 			break;
 		case "/unlock_users":
-			pass = request.getParameter("password");
-			try {
-				Security.validatePassword(pass, user.getPassword());
-			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
+
+//			pass = request.getParameter("reauth_pass");
+//			try {
+//				Security.validatePassword(pass, user.getPassword());
+//			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
+//				// TODO Auto-generated catch block
+//				e2.printStackTrace();
+//			}
 			
 			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
 				try {
@@ -530,81 +535,78 @@ public class Controller extends HttpServlet {
 
 			break;
 		case "/add_admins":
-			pass = request.getParameter("password");
+			pass = request.getParameter("reauth_pass");
 			try {
-				Security.validatePassword(pass, user.getPassword());
-			} catch (NoSuchAlgorithmException | InvalidKeySpecException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			
-			if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR)) {
+				if (user != null && (user.getAccessLevel() == User.ADMINISTRATOR) && 
+						Security.validatePassword(pass, user.getPassword())) {
 
-				try {
+					try {
 
-					User u2 = new User();
+						User u2 = new User();
 
-					u2.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
-					u2.setEmail(request.getParameter("email"));
-					u2.setFirstName(Security.sanitize(request.getParameter("firstname")));
-					u2.setMiddleName(Security.sanitize(request.getParameter("middlename")));
-					u2.setLastName(Security.sanitize(request.getParameter("lastname")));
-					int access = User.STUDENT;
-					String accessString = Security.sanitize(request.getParameter("access_level"));
-					switch (accessString) {
-					case "Library Manager":
-						access = User.MANAGER;
-						break;
-					case "Library Staff":
-						access = User.STAFF;
-						break;
+						u2.setIdUser(Integer.parseInt(Security.sanitize(request.getParameter("userid"))));
+						u2.setEmail(request.getParameter("email"));
+						u2.setFirstName(Security.sanitize(request.getParameter("firstname")));
+						u2.setMiddleName(Security.sanitize(request.getParameter("middlename")));
+						u2.setLastName(Security.sanitize(request.getParameter("lastname")));
+						int access = User.STUDENT;
+						String accessString = Security.sanitize(request.getParameter("access_level"));
+						switch (accessString) {
+						case "Library Manager":
+							access = User.MANAGER;
+							break;
+						case "Library Staff":
+							access = User.STAFF;
+							break;
 
-					case "Library Student Assistant":
-						access = User.ASSISTANT;
-						break;
-					default:
-						access = User.STUDENT;
+						case "Library Student Assistant":
+							access = User.ASSISTANT;
+							break;
+						default:
+							access = User.STUDENT;
+						}
+
+						u2.setAccessLevel(access);
+						String birthdate = Security.sanitize(request.getParameter("birthdate"));
+						String[] dates = birthdate.split("/");
+						int month = Integer.parseInt(dates[0]);
+						int day = Integer.parseInt(dates[1]);
+						int year = Integer.parseInt(dates[2]);
+						u2.setBirthdate(new GregorianCalendar(year, month, day));
+						u2.setCreateTime(new GregorianCalendar());
+						u2.setLastLogin(new GregorianCalendar());
+						u2.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
+						String unAnswer = request.getParameter("secret_answer");
+						u2.setSecretAnswer(Security.createHash(unAnswer));
+						u2.setUserName(Security.sanitize(request.getParameter("username")));
+						
+						u2.setPassword(Security.createHash(""+new SecureRandom().nextInt(10000)));
+
+						if (UserService.validateUser(u2)) {
+							UserService.addUser(u2);
+							UserService.unlockUser(u2.getIdUser());
+							response.sendRedirect("home");
+						} else {
+							response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
+						}
+
+					} catch (NoSuchAlgorithmException e) {
+						e.printStackTrace();
+
+					} catch (InvalidKeySpecException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+						response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed");
+						;
 					}
 
-					u2.setAccessLevel(access);
-					String birthdate = Security.sanitize(request.getParameter("birthdate"));
-					String[] dates = birthdate.split("/");
-					int month = Integer.parseInt(dates[0]);
-					int day = Integer.parseInt(dates[1]);
-					int year = Integer.parseInt(dates[2]);
-					u2.setBirthdate(new GregorianCalendar(year, month, day));
-					u2.setCreateTime(new GregorianCalendar());
-					u2.setLastLogin(new GregorianCalendar());
-					u2.setSecretQuestion(Security.sanitize(request.getParameter("secret_question")));
-					String unAnswer = request.getParameter("secret_answer");
-					u2.setSecretAnswer(Security.createHash(unAnswer));
-					u2.setUserName(Security.sanitize(request.getParameter("username")));
-
-					String unhashed = request.getParameter("password");
-
-					u2.setPassword(Security.createHash(unhashed));
-
-					if (UserService.validateUser(u2)) {
-						UserService.addUser(u2);
-						UserService.unlockUser(u2.getIdUser());
-						response.sendRedirect("home");
-					} else {
-						response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Credentials lacking.");
-					}
-
-				} catch (NoSuchAlgorithmException e) {
-					e.printStackTrace();
-
-				} catch (InvalidKeySpecException e) {
-					e.printStackTrace();
-				} catch (Exception e) {
-					e.printStackTrace();
-					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed");
-					;
+				} else {
+					response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
 				}
-
-			} else {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page not found.");
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 			break;
 		case "/search_room":
