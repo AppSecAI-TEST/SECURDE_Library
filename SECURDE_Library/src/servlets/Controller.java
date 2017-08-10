@@ -46,11 +46,7 @@ import services.UserService;
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
 		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
-<<<<<<< HEAD
-		"/temp_pass_change","/addreview", "/commentreview"
-=======
-		"/temp_pass_change", "/delete_reserve"
->>>>>>> cdcd48e48c38db463a8e006653f322f6847c2056
+		"/temp_pass_change","/addreview", "/commentreview",  "/delete_reserve"
 		})
 
 public class Controller extends HttpServlet {
@@ -650,7 +646,7 @@ public class Controller extends HttpServlet {
 			roomreservation.setIdRoomReservation(rrid);
 			RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), RoomSlot.RESERVED);
 			break;
-<<<<<<< HEAD
+
 		case "/commentreview":
 			if(user != null){
 				request.setAttribute(Books.COLUMN_IDBOOK, request.getParameter(Books.COLUMN_IDBOOK));
@@ -659,7 +655,6 @@ public class Controller extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unathorized page access.");
 			}
 			break;
-=======
 
 		case "/delete_reserve":
 			
@@ -672,7 +667,6 @@ public class Controller extends HttpServlet {
 				
 			break;
 
->>>>>>> cdcd48e48c38db463a8e006653f322f6847c2056
 		case "/new_user":
 			// TODO Auto-generated method stub
 
