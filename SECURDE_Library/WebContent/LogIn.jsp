@@ -55,6 +55,7 @@
 				<label for="pwd">Password:</label> <input type="password"
 					class="form-control" id="pwd" name="password">
 			</div>
+			<a href="forget_password_page">Forgot password?</a><br>
 			<button id="submit" class="btn btn-success col-md-4 col-md-offset-4">Log
 				In</button>
 		</form>
