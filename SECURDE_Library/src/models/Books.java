@@ -5,26 +5,26 @@ import java.util.GregorianCalendar;
 
 public class Books implements Serializable {
 
-	public final static String TABLE_NAME			= "books"		 ;
-	public final static String	COLUMN_IDBOOK       = "idBooks"       ;
-	public final static String	COLUMN_TITLE    	= "title"    	 ;
-	public final static String 	COLUMN_AUTHOR       = "author"       ;
-	public final static String 	COLUMN_PUBLISHER    = "publisher"    ;
-	public final static String 	COLUMN_YEAR   		= "year"   		 ;
-	public final static String 	COLUMN_LOCATION  	= "location"     ;
-	public final static String 	COLUMN_STATUS       = "status"       ;
-	public final static String 	COLUMN_CREATETIME  = "create_time"   ;
+	public final static String TABLE_NAME = "books";
+	public final static String COLUMN_IDBOOK = "idBooks";
+	public final static String COLUMN_TITLE = "title";
+	public final static String COLUMN_AUTHOR = "author";
+	public final static String COLUMN_PUBLISHER = "publisher";
+	public final static String COLUMN_YEAR = "year";
+	public final static String COLUMN_LOCATION = "location";
+	public final static String COLUMN_STATUS = "status";
+	public final static String COLUMN_CREATETIME = "create_time";
 	public final static String COLUMN_TYPE = "type";
-	
+
 	public final static int BOOK = 0;
 	public final static int MAGAZINE = 1;
-	public final static int THESIS = 2 ;
+	public final static int THESIS = 2;
 	public final static int UNKNOWN = 3;
 
-	public final static int AVAILABLE =0;
-	public final static int RESERVED =1;
-	public final static int OUT =2;
-	
+	public final static int AVAILABLE = 0;
+	public final static int RESERVED = 1;
+	public final static int OUT = 2;
+
 	private int idBooks;
 	private String title;
 	private String author;
@@ -34,7 +34,7 @@ public class Books implements Serializable {
 	private int status;
 	private GregorianCalendar createTime;
 	private int type;
-	
+
 	public int getType() {
 		return type;
 	}
@@ -44,7 +44,7 @@ public class Books implements Serializable {
 	}
 
 	public Books() {
-		
+
 	}
 
 	public int getIdBooks() {
@@ -99,6 +99,19 @@ public class Books implements Serializable {
 		return status;
 	}
 
+	public String getStatusString() {
+		switch (status) {
+		case AVAILABLE:
+			return "Available";
+		case OUT:
+			return "Out";
+		case RESERVED:
+			return "Reserved";
+		default:
+			return "Unknown Status";
+		}
+	}
+
 	public void setStatus(int status) {
 		this.status = status;
 	}
@@ -110,8 +123,5 @@ public class Books implements Serializable {
 	public void setCreateTime(GregorianCalendar createTime) {
 		this.createTime = createTime;
 	}
-	
-	
-	
-	
+
 }

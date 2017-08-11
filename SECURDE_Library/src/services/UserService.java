@@ -672,6 +672,8 @@ public class UserService {
 					
 					if(now.getTimeInMillis() >= time.getTimeInMillis()){
 						updateStatus(u.getIdUser(), User.STATUS_LOCKED);
+
+						logger.warn("[" + id + "] " + username +"'s temporary password has expired.");
 						throw new ExpireException();
 					}
 				}
@@ -688,7 +690,8 @@ public class UserService {
 				}
 			} else {
 
-				logger.info("[" + id + "] " + username + " is locked out.");
+				logger.info("Locked out user : [" + id + "] " + username + " attempted login.");
+				
 				throw new LockoutException();
 
 			}
