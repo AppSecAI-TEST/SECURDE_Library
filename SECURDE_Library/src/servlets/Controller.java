@@ -308,10 +308,10 @@ public class Controller extends HttpServlet {
 		case "/review_detail":
 			List<Reviews> reviewlist = new ArrayList<Reviews>();
 			try {
-				reviewlist = ReviewsService.getReviewsByBook(Integer.parseInt(request.getParameter("idBooks")));
+				reviewlist = ReviewsService.getReviewsByBook(Integer.parseInt(request.getParameter("idBook")));
 			} catch (SQLException e) {
 				booklogger.error("DATABASE FAILURE: " + user_info + " attempt at retrieving reviews. BookID: ["
-						+ Security.sanitize(request.getParameter("idBooks")) + "]");
+						+ Security.sanitize(request.getParameter("idBook")) + "]");
 				e.printStackTrace();
 			}
 			request.setAttribute("reviewlist", reviewlist);

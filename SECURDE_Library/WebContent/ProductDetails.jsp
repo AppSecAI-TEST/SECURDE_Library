@@ -117,7 +117,7 @@
 									<input type="submit" value="Add Review"/>
 								</form>
 								<form action="review_detail" method="post">
-									<input type="text" value="${book.idBooks}" name="idBooks" class="invisible"/>
+									<input type="text" value="${book.idBooks}" name="idBook" class="invisible"/>
 									<input type="submit" value="View Reviews"/>
 								</form>
 							</div>

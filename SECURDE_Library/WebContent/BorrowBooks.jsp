@@ -62,7 +62,7 @@
 											</button>
 										</form>
 										<form action="review_detail" method="get">
-											<input type="text" name="idBooks" value="${book.idBooks}"
+											<input type="text" name="idBook" value="${book.idBooks}"
 											    class="invisible"/>
 											<button type="submit" class="btn btn-sucess">View Reviews</button>
 										</form>
