@@ -170,7 +170,6 @@ public class BooksService {
 				books.add(b);
 			}
 			
-			logger.info("All books retrieved.");
 		}finally{
 			try {
 				pstmt.close();

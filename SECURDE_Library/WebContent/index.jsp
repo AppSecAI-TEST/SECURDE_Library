@@ -35,24 +35,30 @@ ${firstname}
 											</c:otherwise>
 				</c:choose>
 			</h1>
-			<p>Welcome to the new library system that will make it easier for
-				library patrons like you to reserve books and meeting rooms.
-				Choose from a variety of books, thesis, and magazines or reserve a room for your convenience.
+			<p>
+				Welcome to the new library system that will make it easier for
+				library patrons like you to reserve books and meeting rooms. Choose
+				from a variety of books, thesis, and magazines or reserve a room for
+				your convenience.
 				<c:choose>
 					<c:when test="${loggedin>-1}">
 
 					</c:when>
 					<c:otherwise>Sign up
-				now!			</c:otherwise></c:choose></p>
+				now!			</c:otherwise>
+				</c:choose>
+			</p>
 			<p>
-			
+
 				<c:choose>
 					<c:when test="${loggedin>-1}">
 
 					</c:when>
 					<c:otherwise>
-				<a class="btn btn-primary btn-lg" href="signup_page" role="button">Sign
-					Up &raquo;</a>				</c:otherwise></c:choose>
+						<a class="btn btn-primary btn-lg" href="signup_page" role="button">Sign
+							Up &raquo;</a>
+					</c:otherwise>
+				</c:choose>
 			</p>
 		</div>
 	</div>
@@ -84,29 +90,36 @@ ${firstname}
 		</div>
 
 		<hr>
-		<c:choose>
-					<c:when test="${loggedin>-1}">
 
 		<c:choose>
-			<c:when test="${access==2}">
-				<a href="addbookpage">Add New Book</a>
-				<a href="search_book">Book List</a>
-			</c:when>
-			<c:when test="${access==3}">
-				<a href="addbookpage">Add New Book</a>
-				<a href="search_book">Book List</a>
-			</c:when>
-			<c:when test="${access==5}">
-				<a href="add_admins_page">Add New Employees</a><br>
-				<a href="unlock_users_page">Unlock Users</a>
-			</c:when>
-		</c:choose>
+			<c:when test="${loggedin>-1}">
+
+				<c:choose>
+					<c:when test="${access==3}">
+						<a href="addbookpage">Add New Book</a>
+						<a href="search_book">Book List</a><br>
+
+						<a href="exportbooks">Export Books Status</a><br>
+						<a href="exportrooms">Export Rooms Status</a>
 					</c:when>
-					
-		<c:otherwise>
-</c:otherwise></c:choose>
+					<c:when test="${access==4}">
+						<a href="addbookpage">Add New Book</a><br>
+						<a href="search_book">Book List</a>
+					</c:when>
+					<c:when test="${access==5}">
+						<a href="add_admins_page">Add New Employees</a>
+						<br>
+						<a href="unlock_users_page">Unlock Users</a><br>
 
-<form action="export" method="get"><input type="submit" value="Export Data"/></form>
+						<a href="exportbooks">Export Books Status</a><br>
+						<a href="exportrooms">Export Rooms Status</a>
+					</c:when>
+				</c:choose>
+			</c:when>
+
+			<c:otherwise>
+			</c:otherwise>
+		</c:choose>
 
 		<footer>
 			<p>&copy; 2016 LDR Production</p>

@@ -6,13 +6,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
+
+import org.apache.log4j.Logger;
 
 import db.DBPool;
-import models.Books;
 import models.RoomReservation;
+import models.User;
 
 public class RoomReservationService {
+	
+	static final Logger logger = Logger.getLogger(RoomReservationService.class);
 	
 	public static int addRoomReservation(RoomReservation rr){
 		int id=-1;
@@ -57,8 +60,9 @@ public class RoomReservationService {
 				id = rs.getInt(RoomReservation.COLUMN_IDROOMRESERVATION);
 				
 			}
-		
 			
+			User u = UserService.getUserByID(rr.getIdUser());
+			logger.info("["+u.getIdUser()+"] "+u.getUserName()+" reserved room ["+rr.getIdRoom()+"] at "+rr.getStartTime() );
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
