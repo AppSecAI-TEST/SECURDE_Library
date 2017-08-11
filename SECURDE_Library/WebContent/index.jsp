@@ -106,6 +106,8 @@ ${firstname}
 		<c:otherwise>
 </c:otherwise></c:choose>
 
+<form action="export" method="get"><input type="submit" value="Export Data"/></form>
+
 		<footer>
 			<p>&copy; 2016 LDR Production</p>
 		</footer>
