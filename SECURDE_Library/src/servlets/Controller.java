@@ -46,7 +46,7 @@ import services.UserService;
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
 		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
-		"/temp_pass_change","/addreview", "/commentreview",  "/delete_reserve"
+		"/temp_pass_change","/addreview", "/commentreview",  "/delete_reserve", "/review_detail"
 		})
 
 public class Controller extends HttpServlet {
@@ -204,6 +204,14 @@ public class Controller extends HttpServlet {
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
 				request.setAttribute("editable", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
+			break;
+		case "/review_detail":
+			Books bookdetail1 = BooksService
+			.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
+			request.setAttribute("book", bookdetail1);
+			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
+				request.setAttribute("editable", true);
+			request.getRequestDispatcher("ViewReviews.jsp").forward(request, response);
 			break;
 		case "/book_reserve":
 			if (user != null) {

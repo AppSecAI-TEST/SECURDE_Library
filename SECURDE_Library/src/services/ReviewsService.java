@@ -7,11 +7,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import db.DBPool;
 import models.Books;
 import models.Reviews;
 
 public class ReviewsService {
+
+	final static Logger logger = Logger.getLogger(ReviewsService.class);
 	
 	public static int addReview(Reviews r) throws SQLException{
 		int id= -1;
@@ -96,6 +100,10 @@ public class ReviewsService {
 				r.setRating(rs.getInt(Reviews.COLUMN_RATING));
 				reviews.add(r);
 			}
+			
+
+			logger.info("reviews retrieved.");
+			
 		}catch (SQLException e){
 			e.printStackTrace();
 		}finally{

@@ -61,6 +61,11 @@
 											<button type="submit" class="btn btn-success">Details
 											</button>
 										</form>
+										<form action="book_detail" method="get">
+											<input type="text" name="idBooks" value="${book.idBooks}"
+											    class="invisible"/>
+											<button type="submit" class="btn btn-sucess">View Reviews</button>
+										</form>
 									</div>
 									<h4>
 										${book.title}
