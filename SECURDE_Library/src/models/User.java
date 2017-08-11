@@ -20,6 +20,8 @@ public class User implements Serializable{
 	public final static String COLUMN_SECRETANSWER = "secret_answer";
 	public final static String COLUMN_STATUS = "status";
 	public final static String COLUMN_ATTEMPT = "attempt";
+	public final static String COLUMN_EMAILVAL = "email_val";
+	public final static String COLUMN_EMAILCODE = "email_code";
 	
 	public final static int STUDENT = 0;
 	public final static int FACULTY = 1;
@@ -32,7 +34,11 @@ public class User implements Serializable{
 	public final static int STATUS_LOCKED = 1;
 	public final static int STATUS_TEMP = 2;
 	
-	private String firstName, middleName, lastName;
+	public final static int STATUS_INVALID = 0;
+	public final static int STATUS_VALID = 1;
+	
+	
+	private String firstName, middleName, lastName, emailCode;
 	private int idUser;
 	private String userName;
 	private String email;
@@ -42,8 +48,24 @@ public class User implements Serializable{
 	private GregorianCalendar birthdate;
 	private int accessLevel;
 	private String secretQuestion, secretAnswer;
-	private int status, attempt;
+	private int status, attempt, emailVal;
 	
+	public String getEmailCode() {
+		return emailCode;
+	}
+
+	public void setEmailCode(String emailCode) {
+		this.emailCode = emailCode;
+	}
+	
+	public int getEmailVal() {
+		return emailVal;
+	}
+
+	public void setEmailVal(int emailVal) {
+		this.emailVal = emailVal;
+	}
+
 	public int getAttempt() {
 		return attempt;
 	}

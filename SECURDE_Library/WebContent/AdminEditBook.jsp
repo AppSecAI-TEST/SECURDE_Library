@@ -29,7 +29,7 @@
 
 		$('#confirm').click(function() {
 			var reauth = $('#reauth-pass-modal').val();
-			$('#reauth-pass').val(reauth);
+			$('#reauth-pass').val(reauth);			
 			$('#delete_book_form').submit();
 		});
 
@@ -143,7 +143,6 @@
 			<button class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
 			<button type="submit" class="btn btn-success col-md-4 btn-space">Save</button>
 			
-			<input type="text" class="invisible" id="reauth-pass" name="reauth_pass"/>
 			
 		</form>
 		<br>

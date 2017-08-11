@@ -99,8 +99,11 @@
 											<c:when test="${book.status==0}">
 												Available
 											</c:when>
+											<c:when test="${book.status==1}">
+												Reserved	
+											</c:when>
 											<c:otherwise>
-												Reserved
+												Out
 											</c:otherwise>
 										</c:choose>
 									</p>

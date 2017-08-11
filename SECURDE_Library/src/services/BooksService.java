@@ -82,11 +82,14 @@ public class BooksService {
 		
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
+		Books book = BooksService.getBookById(idBook);
 		PreparedStatement pstmt = null;
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1,  idBook);
 			pstmt.executeUpdate();
+			
+			logger.info("[ "+book.getIdBooks()+" ] "+book.getTitle()+" deleted from database.");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -129,7 +132,8 @@ public class BooksService {
 			pstmt.setDouble(7, b.getType());
 			pstmt.setInt(8, b.getIdBooks());
 			pstmt.executeUpdate();
-			
+
+			logger.info("[ "+b.getIdBooks()+" ] "+b.getTitle()+" updated in database.");
 		} finally{
 			try {
 				pstmt.close();
