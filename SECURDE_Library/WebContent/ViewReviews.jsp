@@ -38,7 +38,7 @@
 								<div class="caption">
 									<div class="btn-group cart pull-right">
 										<form action="review_detail" method="get">
-											<input type="text" name="idBooks" value="${book.idBooks}"
+											<input type="text" name="idBooks" value="${review.idBooks}"
 												class="invisible" />
 										</form>
 									</div>

@@ -111,13 +111,17 @@
 											</c:otherwise>
 									</c:choose>
 								</p>
-								<form action="commentreview" method="post">
-								<input type="text" value="${book.idBooks}" name="idBooks" class="invisible"/>
-								<input type="submit" value="Add Review"/>
 								
+								<form action="commentreview" method="post">
+									<input type="text" value="${book.idBooks}" name="idBooks" class="invisible"/>
+									<input type="submit" value="Add Review"/>
 								</form>
-
+								<form action="review_detail" method="post">
+									<input type="text" value="${book.idBooks}" name="idBooks" class="invisible"/>
+									<input type="submit" value="View Reviews"/>
+								</form>
 							</div>
+							
 						</div>
 					</div>
 				</div>

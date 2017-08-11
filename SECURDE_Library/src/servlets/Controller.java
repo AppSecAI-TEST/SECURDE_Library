@@ -48,15 +48,9 @@ import services.UserService;
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
-<<<<<<< HEAD
 		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
-		"/temp_pass_change","/addreview", "/commentreview",  "/delete_reserve", "/review_detail"
-		})
-=======
-		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question",
-		"/answer_question", "/temp_pass_change", "/addreview", "/commentreview", "/delete_reserve", "/exportbooks",
+		"/temp_pass_change","/addreview", "/commentreview",  "/delete_reserve", "/review_detail", "/exportbooks",
 		"/exportrooms" })
->>>>>>> d3a82721fb3ecc1cb5cb5e0dce27ddab24b6d911
 
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -278,14 +272,6 @@ public class Controller extends HttpServlet {
 				request.setAttribute("editable", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
 			break;
-		case "/review_detail":
-			Books bookdetail1 = BooksService
-			.getBookById(Integer.parseInt(Security.sanitize(request.getParameter(Books.COLUMN_IDBOOK))));
-			request.setAttribute("book", bookdetail1);
-			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF))
-				request.setAttribute("editable", true);
-			request.getRequestDispatcher("ViewReviews.jsp").forward(request, response);
-			break;
 		case "/book_reserve":
 			if (user != null) {
 				Books bookreserve = BooksService
@@ -319,7 +305,18 @@ public class Controller extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User is not logged in.");
 			}
 			break;
-
+		case "/review_detail":
+			List<Reviews> reviewlist = new ArrayList<Reviews>();
+			try {
+				reviewlist = ReviewsService.getReviewsByBook(Integer.parseInt(request.getParameter("idBooks")));
+			} catch (SQLException e) {
+				booklogger.error("DATABASE FAILURE: " + user_info + " attempt at retrieving reviews. BookID: ["
+						+ Security.sanitize(request.getParameter("idBooks")) + "]");
+				e.printStackTrace();
+			}
+			request.setAttribute("reviewlist", reviewlist);
+			request.getRequestDispatcher("ViewReviews.jsp").forward(request, response);
+			break;
 		case "/search_book":
 			response.getWriter().append("Served at: ").append(request.getContextPath());
 			List<Books> booklist = new ArrayList<Books>();

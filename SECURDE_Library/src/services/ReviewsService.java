@@ -76,7 +76,7 @@ public class ReviewsService {
 		return id; 
 	}
 	
-	public ArrayList<Reviews> getReviewsByBook(int id){
+	public static ArrayList<Reviews> getReviewsByBook(int id) throws SQLException{
 		ArrayList<Reviews> reviews = new ArrayList<Reviews>();
 		
 		String sql = "Select * from " + Reviews.TABLE_NAME + " WHERE "
@@ -104,8 +104,6 @@ public class ReviewsService {
 
 			logger.info("reviews retrieved.");
 			
-		}catch (SQLException e){
-			e.printStackTrace();
 		}finally{
 			try {
 				pstmt.close();
