@@ -32,7 +32,7 @@ public class UserService {
 
 	final static Logger logger = Logger.getLogger(UserService.class);
 
-	public static void addUser(User u) throws SQLException {
+	public static void addUser(User u) throws SQLException, AddressException, NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException, MessagingException {
 
 		logger.info(u.getUserName() + "attempting to sign up.");
 
@@ -40,8 +40,9 @@ public class UserService {
 				+ User.COLUMN_FIRSTNAME + ", " + User.COLUMN_MIDDLENAME + ", " + User.COLUMN_LASTNAME + ", "
 				+ User.COLUMN_USERNAME + ", " + User.COLUMN_BIRTHDATE + ", " + User.COLUMN_SECRETQUESTION + ", "
 				+ User.COLUMN_SECRETANSWER + ", " + User.COLUMN_CREATETIME + ", " + User.COLUMN_LASTLOGIN + ", "
-				+ User.COLUMN_ACCESSLEVEL + ", " + User.COLUMN_ATTEMPT + ", " + User.COLUMN_PASS + ") "
-				+ " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+				+ User.COLUMN_ACCESSLEVEL + ", " + User.COLUMN_ATTEMPT + ", " + User.COLUMN_EMAILVAL + ", " 
+				+ User.COLUMN_EMAILCODE + ", " + User.COLUMN_PASS + ") "
+				+ " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
 
 		DBPool.getInstance();
 		Connection conn = DBPool.getConnection();
@@ -66,9 +67,32 @@ public class UserService {
 			pstmt.setDate(11, lastlogin);
 			pstmt.setInt(12, u.getAccessLevel());
 			pstmt.setInt(13, 0);
-			pstmt.setString(14, u.getPassword());
 
+
+			char[] possibleCharacters = (new String("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^&*()-_=+[{]}\\|;:\'\",<.>/?")).toCharArray();
+			String newP = RandomStringUtils.random( 16, 0, possibleCharacters.length-1, false, false, possibleCharacters, new SecureRandom() );
+			
+			String newpass = Security.createHash(newP);
+
+			String body = "["+u.getUserName()+"] : Please validate your email with the code " + newP
+					+ "";
+
+
+			if(u.getAccessLevel() == User.STUDENT || u.getAccessLevel() == User.FACULTY)
+				pstmt.setInt(14, User.STATUS_INVALID);
+			else
+				pstmt.setInt(14, User.STATUS_VALID);
+			
+			pstmt.setString(15, newpass);
+			pstmt.setString(16, u.getPassword());
+			
 			pstmt.executeUpdate();
+
+			
+			if(u.getAccessLevel() == User.STUDENT || u.getAccessLevel() == User.FACULTY)
+				EmailUtil.sendEmail(u.getEmail(), "[SHS Library]", body);
+
+			
 
 		} finally {
 			try {
@@ -80,6 +104,7 @@ public class UserService {
 				e.printStackTrace();
 			}
 		}
+		
 
 	}
 
@@ -121,7 +146,9 @@ public class UserService {
 				u.setSecretQuestion(rs.getString(User.COLUMN_SECRETQUESTION));
 				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
 				u.setUserName(rs.getString(User.COLUMN_USERNAME));
+				u.setEmailVal(rs.getInt(User.COLUMN_EMAILVAL));
 				u.setPassword(rs.getString(User.COLUMN_PASS));
+				u.setEmailCode(rs.getString(User.COLUMN_EMAILCODE));
 
 				users.add(u);
 			}
@@ -194,9 +221,10 @@ public class UserService {
 
 				u.setSecretQuestion(rs.getString(User.COLUMN_SECRETQUESTION));
 				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
+				u.setEmailVal(rs.getInt(User.COLUMN_EMAILVAL));
 				u.setUserName(rs.getString(User.COLUMN_USERNAME));
 				u.setPassword(rs.getString(User.COLUMN_PASS));
-
+				u.setEmailCode(rs.getString(User.COLUMN_EMAILCODE));
 				users.add(u);
 			}
 		} catch (SQLException e) {
@@ -253,8 +281,9 @@ public class UserService {
 				u.setSecretQuestion(rs.getString(User.COLUMN_SECRETQUESTION));
 				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
 				u.setUserName(rs.getString(User.COLUMN_USERNAME));
+				u.setEmailVal(rs.getInt(User.COLUMN_EMAILVAL));
 				u.setPassword(rs.getString(User.COLUMN_PASS));
-
+				u.setEmailCode(rs.getString(User.COLUMN_EMAILCODE));
 				users.add(u);
 			}
 		} catch (SQLException e) {
@@ -315,8 +344,9 @@ public class UserService {
 				u.setUserName(rs.getString(User.COLUMN_USERNAME));
 				u.setPassword(rs.getString(User.COLUMN_PASS));
 				u.setStatus(rs.getInt(User.COLUMN_STATUS));
+				u.setEmailVal(rs.getInt(User.COLUMN_EMAILVAL));
 				u.setAttempt(rs.getInt(User.COLUMN_ATTEMPT));
-
+				u.setEmailCode(rs.getString(User.COLUMN_EMAILCODE));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -355,7 +385,8 @@ public class UserService {
 				u.setSecretQuestion(rs.getString(User.COLUMN_SECRETQUESTION));
 				u.setSecretAnswer(rs.getString(User.COLUMN_SECRETANSWER));
 				u.setUserName(rs.getString(User.COLUMN_USERNAME));
-
+				u.setEmailVal(rs.getInt(User.COLUMN_EMAILVAL));
+				u.setEmailCode(rs.getString(User.COLUMN_EMAILCODE));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -797,7 +828,7 @@ public class UserService {
 			
 			String newpass = Security.createHash(newP);
 
-			String body = "You have been given a temporary password " + newP
+			String body = "["+u.getUserName()+"] : You have been given a temporary password " + newP
 					+ " please change it immediately upon login or your account will expire.";
 
 			EmailUtil.sendEmail(u.getEmail(), "[SHS Library]", body);
@@ -859,7 +890,79 @@ public class UserService {
 		return match;
 	}
 
+	public static void updateEmailVal(int id) {
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+		PreparedStatement pstmt = null;
 
+		try {
+
+			logger.warn("[" + id + "] " + getUserNameById(id) + " Email has been validated");
+
+			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_EMAILVAL + " =? " + " WHERE "
+					+ User.COLUMN_IDNUM + " =?;";
+
+			pstmt = conn.prepareStatement(sel);
+			pstmt.setInt(1, User.STATUS_VALID);
+			pstmt.setInt(2, id);
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
+	
+	public static void updateEmailCode(int id) throws NoSuchAlgorithmException, InvalidKeySpecException, AddressException, UnsupportedEncodingException, MessagingException {
+		DBPool.getInstance();
+		Connection conn = DBPool.getConnection();
+		PreparedStatement pstmt = null;
+
+		try {
+
+			logger.warn("[" + id + "] " + getUserNameById(id) + " Email code has changed");
+
+			String sel = "UPDATE " + User.TABLE_NAME + " SET " + User.COLUMN_EMAILCODE + " =? " + " WHERE "
+					+ User.COLUMN_IDNUM + " =?;";
+			
+			User u = UserService.getUserByID(id);
+			char[] possibleCharacters = (new String("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^&*()-_=+[{]}\\|;:\'\",<.>/?")).toCharArray();
+			String newP = RandomStringUtils.random( 16, 0, possibleCharacters.length-1, false, false, possibleCharacters, new SecureRandom() );
+			
+			String newpass = Security.createHash(newP);
+
+			String body = "["+u.getUserName()+"] : Please validate your email with the code " + newP
+					+ "";
+
+			pstmt = conn.prepareStatement(sel);
+			pstmt.setString(1, newpass);
+			pstmt.setInt(2, id);
+			pstmt.executeUpdate();
+
+			EmailUtil.sendEmail(u.getEmail(), "[SHS Library]", body);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
+	
 	public static boolean validateUser(User u) {
 
 		if (u.getFirstName() == "" || u.getLastName() == "" || u.getMiddleName() == "" || u.getUserName() == ""

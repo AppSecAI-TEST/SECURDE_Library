@@ -48,9 +48,9 @@ import services.UserService;
 @WebServlet(urlPatterns = { "/book_detail", "/home", "/login_page", "/book_reserve", "/addbook", "/addbookpage",
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
-		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
-		"/temp_pass_change","/addreview", "/commentreview",  "/delete_reserve", "/review_detail", "/exportbooks",
-		"/exportrooms" })
+		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question",
+		"/answer_question", "/temp_pass_change", "/addreview", "/commentreview", "/delete_reserve", "/review_detail",
+		"/exportbooks", "/exportrooms", "/validate_email", "/validate_email_page" })
 
 public class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -95,12 +95,21 @@ public class Controller extends HttpServlet {
 
 		if ("/temp_pass_change".equals(servletPath)) {
 			request.getRequestDispatcher("MyAccount.jsp").forward(request, response);
+			return;
 		} else if (user != null && user.getStatus() == User.STATUS_TEMP && !"/change_pass".equals(servletPath)
 				&& !"/logout".equals(servletPath)) {
 			response.sendRedirect("temp_pass_change");
 			return;
 		}
 
+		if ("/validate_email_page".equals(servletPath)) {
+			request.getRequestDispatcher("ValidateEmail.jsp").forward(request, response);
+			return;
+		} else if (user != null && user.getEmailVal() != User.STATUS_VALID && !"/validate_email".equals(servletPath)
+				&& !"/logout".equals(servletPath)) {
+			response.sendRedirect("validate_email_page");
+			return;
+		}
 		switch (servletPath) {
 		case "/temp_pass_change":
 			break;
@@ -697,7 +706,21 @@ public class Controller extends HttpServlet {
 
 				} catch (InvalidKeySpecException e) {
 					e.printStackTrace();
+				} catch (AddressException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					logger.error("DATABASE FAILURE : Failed adding user to database.");
+					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed");
+				} catch (MessagingException e) {
+					// TODO Auto-generated catch block
+					logger.error("SEND EMAIL FAILURE : Failed sending validation email.");
+					e.printStackTrace();
+					response.sendError(HttpServletResponse.SC_REQUEST_TIMEOUT, "Email Sending Failed.");
 				} catch (Exception e) {
+					logger.warn("Sign up failed.");
 					e.printStackTrace();
 					response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Sign Up Failed");
 					;
@@ -851,7 +874,32 @@ public class Controller extends HttpServlet {
 			}
 
 			break;
+		case "/validate_email":
+			try {
 
+				if (user != null) {
+					String code = request.getParameter("emailcode");
+					String passw = request.getParameter("password");
+					int iduser = user.getIdUser();
+					if (Security.validatePassword(code, user.getEmailCode())) {
+						UserService.updateEmailVal(iduser);
+						response.sendRedirect("home");
+					} else {
+						UserService.updateEmailCode(iduser);
+						request.getRequestDispatcher("NewEmailCode.jsp").forward(request, response);
+					}
+
+				} else {
+					response.sendRedirect("home");
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Credentials do not match.");
+
+			}
+
+			break;
 		case "/addreview":
 			if (user != null) {
 				Reviews r = new Reviews();
