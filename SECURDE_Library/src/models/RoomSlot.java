@@ -42,6 +42,17 @@ public class RoomSlot {
 		return status;
 	}
 
+	public String getStatusString() {
+		switch (status) {
+		case AVAILABLE:
+			return "Available";
+		case RESERVED:
+			return "Reserved";
+		default:
+			return "Unknown Status";
+		}
+	}
+
 	public void setStatus(int status) {
 		this.status = status;
 	}

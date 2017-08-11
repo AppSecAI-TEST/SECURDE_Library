@@ -40,8 +40,8 @@
 
 							</div>
 							<div class="caption">
-									<h2>Room Name: ${room.name}</h2>
-									<h3>Floor: ${room.floor}</h3>
+								<h2>Room Name: ${room.name}</h2>
+								<h3>Floor: ${room.floor}</h3>
 
 							</div>
 						</div>
@@ -53,53 +53,57 @@
 					<div class="col-md-9">
 						<div class="thumbnail">
 							<div class="caption">
-								
-<c:forEach items="${roomslots}" var="roomslot">
+
+								<c:forEach items="${roomslots}" var="roomslot">
 
 	Status:
 	<c:choose>
-		<c:when test="${roomslot.status==0}">
+										<c:when test="${roomslot.status==0}">
 												Available
 											</c:when>
-		<c:otherwise>
+										<c:otherwise>
 												Reserved
 											</c:otherwise>
-	</c:choose>
-	<h5>Timeslot: ${roomslot.start_time} - ${roomslot.end_time}</h5>
+									</c:choose>
+									<h5>Timeslot: ${roomslot.start_time} -
+										${roomslot.end_time}</h5>
 
-	<c:if test="${loggedin != -1}">
-	
-		<c:choose>
+									<c:if test="${loggedin != -1}">
 
-			<c:when test="${roomslot.status==0}">
-						<form action="room_reserve" method="post">
-							<input type="text" class="invisible" value="${roomslot.idRoomSlot}"
-								name="idRoomSlot" />
-							<button type="submit" class="btn btn-success">Reserve</button>
-		
-						</form>
-			</c:when>
-			<c:otherwise>
-					<c:choose>
-						<c:when test="${override != null }">
-							<form action="delete_reserve" method="post">
-								<input type="text" class="invisible" value="${roomslot.idRoomSlot}"
-									name="idRoomSlot" />
-								<button type="submit" class="btn btn-danger">Delete Reservation</button>
-			
-							</form>
-						</c:when>
-						<c:otherwise>
-							<button type="button" class="btn btn-disabled">Unavailable </button>
-						</c:otherwise>
-					</c:choose>
-					
-			</c:otherwise>
-		</c:choose>
+										<c:choose>
 
-	</c:if>
-	<br><br>
-</c:forEach>
+											<c:when test="${roomslot.status==0}">
+												<form action="room_reserve" method="post">
+													<input type="text" class="invisible"
+														value="${roomslot.idRoomSlot}" name="idRoomSlot" />
+													<button type="submit" class="btn btn-success">Reserve</button>
+
+												</form>
+											</c:when>
+											<c:otherwise>
+												<c:choose>
+													<c:when test="${override != null }">
+														<form action="delete_reserve" method="post">
+															<input type="text" class="invisible"
+																value="${roomslot.idRoomSlot}" name="idRoomSlot" />
+															<button type="submit" class="btn btn-danger">Delete
+																Reservation</button>
+
+														</form>
+													</c:when>
+													<c:otherwise>
+														<button type="button" class="btn btn-disabled">Unavailable
+														</button>
+													</c:otherwise>
+												</c:choose>
+
+											</c:otherwise>
+										</c:choose>
+
+									</c:if>
+									<br>
+									<br>
+								</c:forEach>
 
 							</div>
 						</div>

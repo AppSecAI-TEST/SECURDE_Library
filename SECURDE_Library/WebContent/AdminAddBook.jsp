@@ -25,7 +25,9 @@
 
 <script>
 	$(document).ready(function() {
-		$('#submit').click(function() {
+		$('#confirm').click(function() {
+			var reauth = $('#reauth-pass-modal').val();
+			$('#reauth-pass').val(reauth);
 			$('#add-book-form').submit();
 		});
 
@@ -74,11 +76,14 @@
 				<label for="tags">Tags:</label> <input type="text"
 					class="form-control" placeholder="Separate tags with comma (,)" name="tags" id="tag">
 			</div>
+			
+			<input type="text" class="invisible" id="reauth-pass" name="reauth_pass"/>
+			
 			<button class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
-			<button type="submit" class="btn btn-success col-md-4 btn-space">Add</button>
+			<button type="button" class="btn btn-info col-md-4" data-toggle="modal" data-target="#ReAuth">Add</button>
 		</form>
 	</div>
-
+	<jsp:include page="components/reauth_modal.jsp" />
 
 </body>
 </html>

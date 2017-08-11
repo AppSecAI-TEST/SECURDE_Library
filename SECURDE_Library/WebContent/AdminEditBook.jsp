@@ -27,8 +27,10 @@
 <script>
 	$('document').ready(function() {
 
-		$('#submit').click(function() {
-			$('form#editbook').submit();
+		$('#confirm').click(function() {
+			var reauth = $('#reauth-pass-modal').val();
+			$('#reauth-pass').val(reauth);
+			$('#delete_book_form').submit();
 		});
 
 	});
@@ -140,14 +142,19 @@
 			</div>
 			<button class="btn btn-default col-md-4 col-md-offset-2 btn-space">Cancel</button>
 			<button type="submit" class="btn btn-success col-md-4 btn-space">Save</button>
+			
+			<input type="text" class="invisible" id="reauth-pass" name="reauth_pass"/>
+			
 		</form>
 		<br>
-		<form action="delete_book" method="post">
+		<form action="delete_book" method="post" id="delete_book_form">
 			<input type="text" class="invisible" value="${show_book.idBooks}" name="idBooks"/>
-			<button type="submit" class="btn btn-danger col-md-offset-6 col-md-4">DELETE</button>
+			<input type="text" class="invisible" id="reauth-pass" name="reauth_pass"/>
+			<button type="button" class="btn btn-danger col-md-4 col-md-offset-2" data-toggle="modal" data-target="#ReAuth">DELETE</button>
+		
 		</form>
 	</div>
 
-
+	<jsp:include page="components/reauth_modal.jsp" />
 </body>
 </html>

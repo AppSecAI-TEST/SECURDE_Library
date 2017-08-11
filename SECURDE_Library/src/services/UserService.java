@@ -666,12 +666,14 @@ public class UserService {
 				UnlockedUsers unlock = UnlockedUserService.getUnlockedUserById(id);
 				if(unlock != null){
 					GregorianCalendar time = unlock.getCreateTime();
-					time.add(Calendar.DATE, 1);
-					
 					GregorianCalendar now = new GregorianCalendar();
 					
-					if(now.getTimeInMillis() <= time.getTimeInMillis()){
+					time.add(Calendar.DATE, 1);
+					
+					if(now.getTimeInMillis() >= time.getTimeInMillis()){
 						updateStatus(u.getIdUser(), User.STATUS_LOCKED);
+
+						logger.warn("[" + id + "] " + username +"'s temporary password has expired.");
 						throw new ExpireException();
 					}
 				}
@@ -688,7 +690,8 @@ public class UserService {
 				}
 			} else {
 
-				logger.info("[" + id + "] " + username + " is locked out.");
+				logger.info("Locked out user : [" + id + "] " + username + " attempted login.");
+				
 				throw new LockoutException();
 
 			}
