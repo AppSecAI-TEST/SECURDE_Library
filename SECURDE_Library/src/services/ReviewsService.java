@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import db.DBPool;
+import models.Books;
 import models.Reviews;
 
 public class ReviewsService {
 	
-	public void addReview(Reviews r){
+	public static int addReview(Reviews r) throws SQLException{
+		int id= -1;
 		String sql ="INSERT INTO " + Reviews.TABLE_NAME + " (" 
 				+ Reviews.COLUMN_REVIEW + ", "
 				+ Reviews.COLUMN_REVIEWID + ", "
@@ -38,11 +40,26 @@ public class ReviewsService {
 			pstmt.setDate(6,creation);
 			
 			pstmt.executeUpdate();
+
+			String sel ="SELECT "+Reviews.COLUMN_REVIEWID+" FROM "+ Reviews.TABLE_NAME+" WHERE "
+					+ Reviews.COLUMN_REVIEW + " =? AND "
+					+ Reviews.COLUMN_BOOKID + " =? AND "
+					+ Reviews.COLUMN_USERID + " =? AND "
+					+ Reviews.COLUMN_RATING	+ " =?";
 			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}finally{
+			pstmt = conn.prepareStatement(sel);
+			pstmt.setInt(1, r.getIdBook());
+			pstmt.setInt(2, r.getIdUser());
+			pstmt.setString(3, r.getReview());
+			pstmt.setInt(4, r.getRating());
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()){
+				id = rs.getInt(Reviews.COLUMN_REVIEWID);
+				
+			}
+		
+		} finally{
 			try {
 				pstmt.close();
 				conn.close();
@@ -52,6 +69,7 @@ public class ReviewsService {
 			}
 		}
 		
+		return id; 
 	}
 	
 	public ArrayList<Reviews> getReviewsByBook(int id){

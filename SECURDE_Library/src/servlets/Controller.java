@@ -25,6 +25,7 @@ import models.BookReservation;
 import models.Books;
 import models.RoomReservation;
 import models.RoomSlot;
+import models.Reviews;
 import models.Tags;
 import models.User;
 import security.Security;
@@ -33,6 +34,7 @@ import services.BooksService;
 import services.RoomReservationService;
 import services.RoomSlotService;
 import services.RoomsServices;
+import services.ReviewsService;
 import services.ServerService;
 import services.TagsService;
 import services.UserService;
@@ -44,7 +46,7 @@ import services.UserService;
 		"/add_admins_page", "/add_admins", "/edit_book", "/search_room", "/get_room", "/room_reserve", "/new_user",
 		"/search_book", "/delete_book", "/update_book", "/login", "/signup_page", "/logout", "/myaccount",
 		"/change_pass", "/unlock_users_page", "/unlock_users", "/forget_password_page", "/secret_question", "/answer_question",
-		"/temp_pass_change", "/delete_reserve"
+		"/temp_pass_change","/addreview", "/commentreview",  "/delete_reserve"
 		})
 
 public class Controller extends HttpServlet {
@@ -52,7 +54,7 @@ public class Controller extends HttpServlet {
 
 	final static Logger logger = Logger.getLogger(Controller.class);
 	final static Logger booklogger = Logger.getLogger(BooksService.class);
-
+	final static Logger reviewlogger = Logger.getLogger(ReviewsService.class);
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -203,7 +205,6 @@ public class Controller extends HttpServlet {
 				request.setAttribute("editable", true);
 			request.getRequestDispatcher("ProductDetails.jsp").forward(request, response);
 			break;
-
 		case "/book_reserve":
 			if (user != null) {
 				Books bookreserve = BooksService
@@ -646,6 +647,15 @@ public class Controller extends HttpServlet {
 			RoomSlotService.updateStatus(roomreserve.getIdRoomSlot(), RoomSlot.RESERVED);
 			break;
 
+		case "/commentreview":
+			if(user != null){
+				request.setAttribute(Books.COLUMN_IDBOOK, request.getParameter(Books.COLUMN_IDBOOK));
+				request.getRequestDispatcher("AddReviews.jsp").forward(request, response);
+			}else{
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unathorized page access.");
+			}
+			break;
+
 		case "/delete_reserve":
 			
 			if (user != null && (user.getAccessLevel() == User.MANAGER || user.getAccessLevel() == User.STAFF)) {
@@ -734,13 +744,40 @@ public class Controller extends HttpServlet {
 
 			break;
 
+		case "/addreview":
+				if (user != null) {
+					Reviews r = new Reviews();
+					r.setReview(Security.sanitize(request.getParameter("review")));
+					r.setIdBook(Integer.parseInt(Security.sanitize(request.getParameter("idBooks"))));
+					r.setIdUser(user.getIdUser());
+					r.setRating(4);
+					r.setCreateTime(new GregorianCalendar());
+					
+					int reviewid;
+					try {
+						reviewid = ReviewsService.addReview(r);
+						request.setAttribute(Reviews.COLUMN_REVIEWID, reviewid);
+						reviewlogger.info("[" + reviewid + "] " + r.getReview() + " review added by " + user_info);
+						request.getRequestDispatcher("book_detail").forward(request, response);
+
+					} catch (SQLException e) {
+						reviewlogger
+								.error("DATABASE FAILURE: " + user_info + " attempted to add review[" + r.getReview() + "]");
+						e.printStackTrace();
+						response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					}
+				} else {
+
+					response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Page unavailable.");
+				}
+				
+		break;
 		case "/home":
 		default:
 			if (user != null) {
 				request.setAttribute("access", user.getAccessLevel());
 			}
 			request.getRequestDispatcher("index.jsp").forward(request, response);
-
 		}
 
 	}

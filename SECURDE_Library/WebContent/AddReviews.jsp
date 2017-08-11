@@ -6,6 +6,14 @@
 
 <jsp:include page="components/headers.jsp" />
 </head>
+<script>
+	$(document).ready(function() {
+		$('#submit').click(function() {
+			$('#add-review-form').submit();
+		});
+
+	});
+</script>
 <body>
 
 	
@@ -34,13 +42,12 @@
 					</div>
 				</li>
 			</ul>
-			<form class="form-inline" role="form">
+			<form  action="addreview" method="post" id="add-review-form"  class="form-inline" role="form" >
 				<div class="form-group">
-					<input class="form-control" type="text" placeholder="Your comments" />
+					<input type="text" class="form-control" id="review" name="review">
+					<input type="text" class="invisible" name="idBooks" id="idBooks" value="${idBooks}"/>
 				</div>
-				<div class="form-group">
-					<button class="btn btn-default">Add</button>
-				</div>
+					<button type="submit" class="btn btn-default">Add</button>
 			</form>
 		</div>
 	</div>
